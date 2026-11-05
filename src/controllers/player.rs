@@ -195,6 +195,10 @@ pub async fn add(request: Request) -> Response {
         return Ok(failure("添加角色失败，积分不足", 7));
     }
 
+    crate::support::plugin_api::fire(
+        "PlayerWillBeAdded",
+        json!({ "uid": user.uid, "name": name.clone() }),
+    );
     let player = Player::create(attrs! {
         uid: user.uid,
         name: name.clone(),
@@ -203,6 +207,10 @@ pub async fn add(request: Request) -> Response {
         last_modified: Utc::now(),
     })
     .await?;
+    crate::support::plugin_api::fire(
+        "PlayerWasAdded",
+        json!({ "pid": player.pid, "uid": player.uid, "name": player.name.clone() }),
+    );
     let next_score = user.score - cost as i32;
     user.update(attrs! {
         score: next_score,
@@ -231,7 +239,16 @@ pub async fn delete(request: Request) -> Response {
         return forbidden();
     };
     let name = player.name.clone();
+    let pid = player.pid;
+    crate::support::plugin_api::fire(
+        "PlayerWillBeDeleted",
+        json!({ "pid": player.pid, "uid": player.uid, "name": player.name.clone() }),
+    );
     player.delete().await?;
+    crate::support::plugin_api::fire(
+        "PlayerWasDeleted",
+        json!({ "pid": pid, "uid": user.uid, "name": name.clone() }),
+    );
 
     if options::bool_or("return_score", true).await? {
         let cost = options::int_or("score_per_player", 100).await?;
@@ -278,6 +295,10 @@ pub async fn rename(request: Request) -> Response {
         })
         .await?;
     let updated = Player::find(pid).await?;
+    crate::support::plugin_api::fire(
+        "PlayerProfileUpdated",
+        json!({ "pid": pid, "uid": user.uid, "field": "name", "name": name.clone() }),
+    );
 
     Ok(success(
         format!("角色 {old} 已更名为 {name}"),
@@ -345,6 +366,10 @@ pub async fn set_textures(request: Request) -> Response {
         })
         .await?;
     let updated = Player::find(pid).await?;
+    crate::support::plugin_api::fire(
+        "PlayerProfileUpdated",
+        json!({ "pid": pid, "uid": user.uid, "field": "textures" }),
+    );
 
     Ok(success(
         format!("材质已成功应用至角色 {name}"),
@@ -400,6 +425,10 @@ pub async fn clear_textures(request: Request) -> Response {
         })
         .await?;
     let updated = Player::find(pid).await?;
+    crate::support::plugin_api::fire(
+        "PlayerProfileUpdated",
+        json!({ "pid": pid, "uid": user.uid, "field": "textures" }),
+    );
 
     Ok(success(
         format!("角色 {name} 的材质已被成功重置"),

@@ -15,6 +15,9 @@ pub async fn register() {
         .unwrap_or(0);
     crate::support::install::ensure_lock_for_existing_install(users);
 
+    // 注册编译期原生插件（D-001）；插件在此注册 Filter / Hook / 事件。
+    let _ = crate::plugins::register_all().await;
+
     let session_config = SessionConfig::from_env();
     // 静态资源先于会话处理（逻辑前端产物不依赖会话）。
     global_middleware!(crate::support::static_middleware::StaticMiddleware);
@@ -32,4 +35,6 @@ pub async fn register() {
             .except_method("POST", "/oauth/token")
             .xsrf_cookie_secure(secure)
     );
+    // 插件通过 `Hook::pushMiddleware()` 追加的全局中间件。
+    global_middleware!(crate::support::plugin_api::PluginMiddleware);
 }

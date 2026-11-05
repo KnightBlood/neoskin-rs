@@ -68,12 +68,18 @@ pub(crate) async fn page_context(request: &Request, user: &User, locale_code: &s
     let mut context = view::base_context(locale_code, request.path(), &token, Some(user)).await;
     let (current, langs) = super::page::page_languages(locale_code, request.path());
     let extras = super::page::page_user_extras(user).await;
+    let mut menu_value = menus(request.path(), user);
+    crate::support::plugin_api::merge_menu_hooks(&mut menu_value, "user", request.path());
+    crate::support::plugin_api::merge_menu_hooks(&mut menu_value, "explore", request.path());
     if let Some(object) = context.as_object_mut() {
         object.insert("current".to_string(), Value::String(current));
         object.insert("langs".to_string(), langs);
-        object.insert("menus".to_string(), menus(request.path(), user));
+        object.insert("menus".to_string(), menu_value);
         object.insert("sidebar_color".to_string(), json!("dark-maroon"));
-        object.insert("badges".to_string(), json!([]));
+        object.insert(
+            "badges".to_string(),
+            Value::Array(crate::support::plugin_api::badges(Vec::new())),
+        );
         object.insert("avatar".to_string(), extras["avatar"].clone());
         object.insert("avatar_png".to_string(), extras["avatar_png"].clone());
         object.insert("menu".to_string(), extras["menu"].clone());

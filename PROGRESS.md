@@ -24,8 +24,8 @@
 | Phase 4 管理面板 | 98% | 14 个页面 + `/admin/chart` 数据接口 + 插件/更新端点；插件系统本体仍为 0% |
 | Phase 5 安装向导 | 90% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证 |
 | Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
-| Phase 7 插件系统 | 60% | 清单扫描、启停/删除、依赖冲突、README、市场列表/下载/上传/wget 已完成；Hook/Event 运行时与 PHP 插件代码执行未移植 |
-| Phase 8 测试与验证 | 80% | `cargo test` 67 项 + `tests/db_matrix.rs`（MySQL/MariaDB/PostgreSQL 本机通过，含 MySQL/MariaDB 无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 7 插件系统 | 75% | 清单扫描、启停/删除、依赖冲突、README、市场列表/下载/上传/wget 已完成；原生 Rust API（Hook 7 方法 / Filter / 24 Event / 编译期 Plugin）已实现并接入页面与登录/玩家事件；不执行 PHP 插件代码，动态库加载未做 |
+| Phase 8 测试与验证 | 80% | `cargo test` 74 项 + `tests/db_matrix.rs`（MySQL/MariaDB/PostgreSQL 本机通过，含 MySQL/MariaDB 无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
@@ -80,9 +80,10 @@
     `Closet.Read` 的读写 scope 拼写为 `Closet.ReadWrtie`，Rust 端同时接受
     `Closet.ReadWrite` 以兼容存量令牌。
 16. **插件系统**：按根目录 `DECISIONS.md` **D-001（方案 A）**，Rust 端实现
-    `package.json` 清单层、市场下载/上传/wget，并提供 Rust 原生插件 API；
-    **不执行 PHP 插件代码**，现有插件需改写为原生插件。Hook / Filter /
-    24 个 Event 的 Rust 运行时仍待实现。
+    `package.json` 清单层、市场下载/上传/wget，并提供原生插件 API
+    （`support/plugin_api.rs`：Hook 7 方法、Filter、24 个 Event、`Plugin` trait）；
+    **不执行 PHP 插件代码**，现有插件需改写为原生插件。插件代码编译进二进制，
+    暂不加载动态库。
 17. **路由形状**：`/{player}.json`、`/csl/{player}.json` 由
     `/{player}`、`/csl/{player}` 在处理器内识别 `.json` 后缀（matchit 不支持
     「参数 + 字面后缀」）；PHP 的 `_ignition/*` 调试路由不移植。
@@ -300,8 +301,8 @@
 
 ## 6. 下一步
 
-1. 插件运行时：按 `DECISIONS.md` D-001 实现 Rust 原生 Hook / Filter /
-   24 个 Event API，不追求 PHP 插件代码兼容；后续补《插件重写指南》。
+1. 插件运行时：原生 Hook / Filter / 24 Event / `Plugin` trait 已落地；后续补
+   动态库加载（或 WASM/进程隔离）、插件重写指南与授权类过滤器接线。
 2. 插件市场：依赖求解（`dependencies.unsatisfied`）、前端页面联调。
 3. 自动更新：Rust 运行包格式定义、下载/校验/安装（当前仅检测）。
 4. 数据库矩阵：`tests/db_matrix.rs` 已覆盖 MySQL/MariaDB/PostgreSQL，并在

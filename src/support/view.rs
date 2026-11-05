@@ -207,6 +207,8 @@ pub async fn base_context(
         .await
         .unwrap_or_default();
     let locale_dash = locale.replace('_', "-");
+    let links = crate::support::plugin_api::head_links(request_path);
+    let scripts = crate::support::plugin_api::scripts(request_path);
 
     json!({
         "locale": locale_dash,
@@ -237,8 +239,8 @@ pub async fn base_context(
             "route": request_path,
         },
         "i18n": lang_url(locale),
-        "links": [],
-        "scripts": [],
+        "links": links,
+        "scripts": scripts,
         "extra_head": [],
         "extra_foot": [],
         "copyright": copyright,

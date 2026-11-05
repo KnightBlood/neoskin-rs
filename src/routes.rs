@@ -1,4 +1,4 @@
-use suprnova::{any, delete, get, post, put, routes};
+use suprnova::{Router, any, delete, get, post, put, routes};
 
 use crate::controllers;
 
@@ -227,4 +227,9 @@ routes! {
 
     // Minecraft CustomSkinAPI 根路径 /{player}.json
     get!("/{player}", controllers::home::root_path).name("root.path"),
+}
+
+/// 核心路由 + 插件通过 Hook::addRoute() 注册的路由。
+pub fn register_with_plugins() -> Router {
+    crate::support::plugin_api::HOOK.apply_routes(register())
 }

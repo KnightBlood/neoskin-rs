@@ -419,6 +419,14 @@ pub async fn delete(request: Request) -> Response {
     }
 
     let connection = DB::connection()?;
+    crate::support::plugin_api::fire(
+        "TextureDeleting",
+        json!({
+            "tid": tid,
+            "uploader": texture.uploader,
+            "hash": texture.hash.clone(),
+        }),
+    );
     let same_hash = Texture::find()
         .filter(TextureColumn::Hash.eq(texture.hash.clone()))
         .all(connection.inner())
@@ -669,6 +677,7 @@ pub async fn show_page(request: Request) -> Response {
     {
         badges.push(json!({ "text": "STAFF", "color": "primary" }));
     }
+    let badges = crate::support::plugin_api::badges(badges);
     let in_closet = if let Some(user) = &user {
         crate::models::closet_item::Entity::find()
             .filter(crate::models::closet_item::Column::UserUid.eq(user.uid))
@@ -761,6 +770,13 @@ pub async fn upload_page(request: Request) -> Response {
     let content_policy = crate::support::communication::markdown(
         &options::localized(&locale_code, "content_policy").await?,
     );
+    let content_policy = match crate::support::plugin_api::apply_filter(
+        "content_policy",
+        Value::String(content_policy.clone()),
+    ) {
+        Value::String(filtered) => filtered,
+        _ => content_policy,
+    };
     if let Some(object) = context.as_object_mut() {
         object.insert(
             "grid".to_string(),

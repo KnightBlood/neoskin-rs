@@ -159,20 +159,25 @@ Suprnova 内置 session（cookie-based），替代 Laravel Session。
 
 Rust 是静态编译语言，不支持运行时加载任意 Rust 代码。
 
-### 8.2 方案选型
+### 8.2 方案选型（D-001）
 
-| 方案 | 优点 | 缺点 | 推荐 |
-| --- | --- | --- | --- |
-| WASM (wasmtime) | 跨平台，沙箱 | 生态不成熟，API 限制 | ⚠️ |
-| 动态库 (libloading) | 原生性能 | 平台相关，ABI 稳定性 | ⚠️ |
-| 独立进程 + gRPC | 完全隔离，语言无关 | 复杂度高 | ✅ 推荐 |
-| 脚本引擎 (rhai/lua) | 轻量 | 需插件用脚本语言重写 | ⚠️ |
+按根目录 `DECISIONS.md` D-001，采用**方案 A：原生插件 API + 插件重写**，
+不嵌入 PHP 解释器、不做共享 PHP sidecar，也不把 WASM/gRPC 作为本轮默认实现。
 
-**推荐方案**：插件以独立进程运行，通过 gRPC 通信；或使用 WASM 沙箱执行插件逻辑。插件 manifest（`package.json`）格式保持不变。
+| 方案 | 结论 |
+| --- | --- |
+| 原生 Rust 插件（编译期注册） | ✅ 已实现：`support/plugin_api.rs` + `plugins::register_all` |
+| 动态库 (libloading) | ⚠️ 后续可选；需要稳定 C ABI |
+| WASM / 独立进程 gRPC | ⚠️ 后续可选；不是当前验收项 |
+
+插件 manifest（`package.json`）格式保持不变；PHP 插件代码不可直接执行，
+需要按原生 API 重写。
 
 ### 8.3 Hook 事件总线
 
-24 个 Event → Rust 的事件分发器（tokio channel + handler 注册表）。
+24 个 Event → `Dispatcher`（同步、按注册顺序）；`Hook` 7 方法、`Filter`
+（priority + 注册顺序）与 `Plugin` trait 均已实现。事件已接入认证、玩家、
+纹理删除、用户资料与插件生命周期。
 
 ---
 
@@ -306,14 +311,14 @@ mock `fetch`。这些 mock 断言了 URL/方法/body/响应形状，等价于一
 - [ ] 静态资源服务
 
 ### Phase 7：插件系统（5-7 天）
-- [ ] 插件 manifest 解析
-- [ ] 事件总线
-- [ ] 插件管理
+- [x] 插件 manifest 解析
+- [x] 原生 Hook 7 方法 / Filter / 24 Event / Plugin trait
+- [x] 插件管理
 
 ### Phase 8：测试与验证（3-5 天）
-- [ ] 67 个测试用例移植
-- [ ] HTTP 契约测试
-- [ ] 数据兼容性测试
+- [x] 74 个测试用例移植
+- [x] HTTP 契约测试
+- [x] 数据兼容性测试
 
 ---
 

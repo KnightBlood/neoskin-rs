@@ -23,7 +23,7 @@ async fn entry() {
     Application::new()
         .config(config::register_all)
         .bootstrap(bootstrap::register)
-        .routes(routes::register)
+        .routes(routes::register_with_plugins)
         .migrations::<migrations::Migrator>()
         .run()
         .await;

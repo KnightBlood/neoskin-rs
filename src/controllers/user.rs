@@ -197,6 +197,7 @@ pub async fn handle_profile(request: Request) -> Response {
         Err(response) => return Ok(response),
     };
     let body: ProfileRequest = request.input().await?;
+    let uid = user.uid;
 
     match body.action.as_str() {
         "nickname" => {
@@ -205,6 +206,10 @@ pub async fn handle_profile(request: Request) -> Response {
                 return Err(validation_error("new_nickname", "昵称 不能为空。").into());
             }
             user.update(attrs! { nickname: nickname.clone() }).await?;
+            crate::support::plugin_api::fire(
+                "UserProfileUpdated",
+                json!({ "uid": uid, "field": "nickname" }),
+            );
             Ok(HttpResponse::json(json!({
                 "code": 0,
                 "message": format!("昵称已成功设置为 {nickname}"),
@@ -222,6 +227,10 @@ pub async fn handle_profile(request: Request) -> Response {
                 .map_err(|error| FrameworkError::internal(format!("密码哈希失败: {error}")))?;
             user.update(attrs! { password: hash }).await?;
             invalidate_session();
+            crate::support::plugin_api::fire(
+                "UserProfileUpdated",
+                json!({ "uid": uid, "field": "password" }),
+            );
             Ok(failure("密码修改成功，请重新登录", 0))
         }
         "email" => {
@@ -250,6 +259,10 @@ pub async fn handle_profile(request: Request) -> Response {
             })
             .await?;
             invalidate_session();
+            crate::support::plugin_api::fire(
+                "UserProfileUpdated",
+                json!({ "uid": uid, "field": "email" }),
+            );
             Ok(failure("邮箱修改成功，请重新登录", 0))
         }
         "delete" => {

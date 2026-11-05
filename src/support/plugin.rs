@@ -389,13 +389,19 @@ pub async fn enable(name: &str, locale: &str) -> Result<Option<Vec<String>>, Fra
     state.retain(|(enabled_name, _)| enabled_name != name);
     state.push((plugin.name.clone(), plugin.version()));
     save_enabled(&state).await?;
+    crate::support::plugin_api::fire(
+        "PluginWasEnabled",
+        serde_json::json!({ "name": plugin.name, "version": plugin.version() }),
+    );
     Ok(None)
 }
 
 pub async fn disable(name: &str) -> Result<(), FrameworkError> {
     let mut state = enabled_state().await;
     state.retain(|(enabled_name, _)| enabled_name != name);
-    save_enabled(&state).await
+    save_enabled(&state).await?;
+    crate::support::plugin_api::fire("PluginWasDisabled", serde_json::json!({ "name": name }));
+    Ok(())
 }
 
 pub async fn delete(name: &str) -> Result<bool, FrameworkError> {
@@ -406,6 +412,7 @@ pub async fn delete(name: &str) -> Result<bool, FrameworkError> {
     disable(name).await?;
     std::fs::remove_dir_all(&plugin.path)
         .map_err(|error| FrameworkError::internal(format!("无法删除插件目录: {error}")))?;
+    crate::support::plugin_api::fire("PluginWasDeleted", serde_json::json!({ "name": name }));
     Ok(true)
 }
 

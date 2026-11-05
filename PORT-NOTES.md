@@ -295,8 +295,8 @@
   - 依赖检查：`blessing-skin-server` 用本端口版本，`php` 固定 `8.3.0`，
     其他插件取启用列表中的版本；无法解析的版本（如 `6.0.11_patch`）
     视为满足，避免误锁。
-  - 只实现清单层：**不执行 PHP 插件代码**。Hook / Filter / Event 与
-    ServiceProvider/Bootstrap 加载未移植；启用插件不会运行任何插件逻辑。
+  - **不执行 PHP 插件代码**；原生扩展点见下。ServiceProvider/Bootstrap
+    不会运行 PHP 插件逻辑。
   - `GET /admin/plugins/config/{name}` 仍返回 404（原生插件无 PHP 配置页）。
   - 市场：注册中心地址取 `plugins_registry` 选项，为空时用
     `PLUGINS_REGISTRY`（默认官方地址），`{lang}` 仅支持 `en` / `zh_CN`；
@@ -307,6 +307,27 @@
     通过 `ZipArchive::enclosed_name` 拒绝绝对路径与 `..`（zip slip）；
     下载超时 20 秒、单包上限 128MB；解压目标为第一个插件目录。
   - 原 PHP 的 `Unzip` 会处理权限/符号链接等细节，Rust 端只做文件与目录写入。
+
+- **原生插件 API（2026-11-05，D-001）**：
+  - `support/plugin_api.rs`：
+    - `Filter`：`add(name, priority, fn)` / `apply` / `remove` / `count`；
+      priority 越小越先执行，同优先级按注册顺序；默认 20。
+    - `Hook`：PHP `App\Services\Hook` 的 7 个方法——`add_menu_item`、
+      `add_route`、`add_style_file_to_page`、`add_script_file_to_page`、
+      `add_user_badge`、`send_notification`、`push_middleware`。
+    - 24 个事件常量 + `Dispatcher`（`listen` / `dispatch` / `count`）。
+    - `Plugin` trait + `PluginApi`：原生 Rust 插件在 `plugins::register_all`
+      中注册；插件代码编译进站点二进制，不执行 PHP。
+  - 已接入：`head_links`/`scripts`（`view::base_context`）、
+    `user_badges`（用户/管理/皮肤库详情）、`content_policy`（上传页）、
+    `user`/`admin`/`explore` 菜单、`PluginWasEnabled/Disabled/Deleted`、
+    `UserTryToLogin/UserLoggedIn/UserRegistered`、玩家增删改、纹理删除、
+    `UserProfileUpdated`。
+  - `Hook::addRoute` 在 `routes::register_with_plugins` 中应用；
+    `Hook::pushMiddleware` 由全局 `PluginMiddleware` 串行执行。
+  - 限制：没有动态库加载（插件需编译进站点）；`PluginManager` 的
+    `boot`/`registerPlugin`/`bootPlugin` 等价物是 `plugins::register_all` +
+    `register_plugin`；插件市场仍只分发清单，不承诺 PHP 插件可执行。
 
 - **更新检测（2026-11-04）**：
   - 更新源优先级：`update_source` 选项 → `UPDATE_SOURCE` 环境变量 →

@@ -16,6 +16,7 @@ pub mod mail;
 pub mod oauth;
 pub mod options;
 pub mod plugin;
+pub mod plugin_api;
 pub mod plugin_market;
 pub mod remember;
 pub mod signed_url;

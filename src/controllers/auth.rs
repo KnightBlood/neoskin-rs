@@ -106,6 +106,10 @@ pub async fn login(request: Request) -> Response {
             "message": "该账户已被封禁。",
         });
     }
+    crate::support::plugin_api::fire(
+        "UserTryToLogin",
+        serde_json::json!({ "identification": identification, "uid": user.uid }),
+    );
     if !verify_password(&user.password, &body.password) {
         login_fails::record(&ip).await;
         return json_response!({
@@ -135,6 +139,10 @@ pub async fn login(request: Request) -> Response {
             "uid": user.uid,
         }
     });
+    crate::support::plugin_api::fire(
+        "UserLoggedIn",
+        serde_json::json!({ "uid": user.uid, "ip": ip }),
+    );
 
     if body.keep {
         let token = ensure_remember_token(&user).await?;
@@ -360,6 +368,10 @@ pub async fn register(request: Request) -> Response {
         })
         .await?;
     }
+    crate::support::plugin_api::fire(
+        "UserRegistered",
+        serde_json::json!({ "uid": user.uid, "email": user.email.clone(), "nickname": user.nickname.clone() }),
+    );
 
     regenerate_session_id();
     session_mut(|data| {
