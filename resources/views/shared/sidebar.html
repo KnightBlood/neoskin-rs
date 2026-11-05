@@ -1,0 +1,22 @@
+<aside class="main-sidebar sidebar-{{ sidebar_color }} elevation-3">
+  <a href="{{ url('/') }}" class="brand-link text-center">
+    <span class="brand-text font-weight-light">{{ site_name }}</span>
+  </a>
+  <div class="sidebar">
+    {% include "shared/user-panel.html" %}
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column nav-child-indent" data-widget="treeview" role="menu">
+        {% for group in menus %}
+          {% if group.items|length > 0 %}
+            <li class="nav-header">{{ trans(group.header) }}</li>
+            {% for item in group.items %}
+              {% with item = item %}
+                {% include "shared/side-menu-item.html" %}
+              {% endwith %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+</aside>

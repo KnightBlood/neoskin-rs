@@ -1,0 +1,22 @@
+# Rust
+/target
+/database.sqlite
+/database.sqlite-shm
+/database.sqlite-wal
+
+# Environment
+.env
+
+# Runtime data
+/storage/
+/public/app/
+/public/lang/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# live:add's lock and journal
+/.suprnova-live.lock
+/.suprnova-live-journal.json

@@ -1,0 +1,22 @@
+{% extends "auth/base.html" %}
+
+{% block title %}{{ trans('auth.login.title') }}{% endblock %}
+
+{% block content %}
+  <p class="login-box-msg">{{ trans('auth.login.message') }}</p>
+  {% if flash %}
+    <div class="alert alert-warning">
+      {{ flash }}
+    </div>
+  {% endif %}
+  <main></main>
+  <div class="mt-3">
+    <a href="{{ url('auth/register') }}">{{ trans('auth.register-link') }}</a>
+  </div>
+{% endblock %}
+
+{% block before_foot %}
+  <script id="blessing-extra" type="application/json">
+    {{ extra|tojson }}
+  </script>
+{% endblock %}

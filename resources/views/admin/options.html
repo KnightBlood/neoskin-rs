@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ trans('general.options') }}{% endblock %}
+{% block title_text %}{{ trans('general.options') }}{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6">
+      {{ forms.general|safe }}
+    </div>
+    <div class="col-md-6">
+      <div class="card card-outline card-info"><div class="card-body"><a href="{{ url('admin/communications') }}">前往通知与公告</a></div></div>
+      {{ forms.meta|safe }}
+      {{ forms.recaptcha|safe }}
+      {{ forms.updates|safe }}
+    </div>
+  </div>
+{% endblock %}

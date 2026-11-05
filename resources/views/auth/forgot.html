@@ -1,0 +1,19 @@
+{% extends "auth/base.html" %}
+
+{% block title %}{{ trans('auth.forgot.title') }}{% endblock %}
+
+{% block content %}
+  <p class="login-box-msg">{{ trans('auth.forgot.message') }}</p>
+  {% if flash %}
+    <div class="alert alert-warning">
+      {{ flash }}
+    </div>
+  {% endif %}
+  <main></main>
+{% endblock %}
+
+{% block before_foot %}
+  <script id="blessing-extra" type="application/json">
+    {{ extra|tojson }}
+  </script>
+{% endblock %}

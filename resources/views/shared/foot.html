@@ -1,0 +1,11 @@
+<script src="{{ i18n }}" crossorigin="anonymous"></script>
+{% include "assets/app.html" ignore missing %}
+{% for script in scripts %}
+  <script{% for attribute, value in script|items %} {{ attribute }}="{{ value }}"{% endfor %}></script>
+{% endfor %}
+{% if inline_js %}
+  <script>
+    {{ inline_js|safe }}
+  </script>
+{% endif %}
+{{ extra_foot|join('\n')|safe }}

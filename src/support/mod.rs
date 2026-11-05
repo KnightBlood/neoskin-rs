@@ -1,0 +1,26 @@
+//! 通用工具：密码哈希、纹理 SHA-256、当前用户、记住我、验证码、OAuth。
+
+pub mod api;
+pub mod auth;
+pub mod captcha;
+pub mod communication;
+pub mod form;
+pub mod hash;
+pub mod i18n;
+pub mod id;
+pub mod install;
+pub mod lang;
+pub mod locale;
+pub mod login_fails;
+pub mod mail;
+pub mod oauth;
+pub mod options;
+pub mod plugin;
+pub mod plugin_market;
+pub mod remember;
+pub mod signed_url;
+pub mod skin;
+pub mod static_middleware;
+pub mod storage;
+pub mod update;
+pub mod view;

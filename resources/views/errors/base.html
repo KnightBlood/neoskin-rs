@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{% block title %}{% endblock %} - {{ site_name }}</title>
+    {% include "assets/spectre.html" ignore missing %}
+  </head>
+
+  <body class="bg-gray">
+    <div class="hero d-flex">
+      <div class="hero-body text-center">
+        <h1><a class="text-primary" href="{{ url('/') }}">{{ site_name }}</a></h1>
+        <div class="divider"></div>
+        <h3 style="margin-top: 15vh;">{% block subtitle %}{% endblock %}</h3>
+        {% block message %}{% endblock %}
+        <div class="divider"></div>
+      </div>
+    </div>
+  </body>
+</html>

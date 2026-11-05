@@ -1,0 +1,15 @@
+{% extends "user/base.html" %}
+
+{% block title %}{{ trans('general.player-manage') }}{% endblock %}
+{% block title_text %}{{ trans('general.player-manage') }}{% endblock %}
+
+{% block content %}
+  {% include "shared/grid.html" %}
+  <div id="modals"></div>
+{% endblock %}
+
+{% block before_foot %}
+  <script id="blessing-extra" type="application/json">
+    {{ extra|tojson }}
+  </script>
+{% endblock %}

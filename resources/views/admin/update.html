@@ -1,0 +1,72 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ trans('general.check-update') }}{% endblock %}
+{% block title_text %}{{ trans('general.check-update') }}{% endblock %}
+
+{% block content %}
+  {% if update_notice %}<div class="alert alert-success" role="status">{{ update_notice }}</div>{% endif %}
+  {% if error %}<div class="alert alert-danger" role="alert">{{ trans('admin.update.errors.connection', {'error': error}) }}</div>{% endif %}
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card card-primary">
+        <div class="card-header">
+          <h3 class="card-title">{{ trans('admin.update.info.title') }}</h3>
+        </div>
+        <div class="card-body">
+          {% if can_update %}
+            <div class="callout callout-info">
+              {{ trans('admin.update.info.available') }}
+            </div>
+            <div class="container-fluid">
+              <div class="row mb-3">
+                <div class="col-sm-4">{{ trans('admin.update.info.versions.latest') }}</div>
+                <div class="col-sm-8">v{{ info.latest }}</div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-sm-4">{{ trans('admin.update.info.versions.current') }}</div>
+                <div class="col-sm-8">v{{ info.current }}</div>
+              </div>
+            </div>
+          {% else %}
+            <div class="callout callout-success">
+              {{ trans('admin.update.info.up-to-date') }}
+            </div>
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-sm-4">{{ trans('admin.update.info.versions.current') }}</div>
+                <div class="col-sm-8">v{{ info.current }}</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="card-footer">
+          <button class="btn bg-primary" {% if not can_update %}disabled="disabled"{% endif %}>
+            {{ trans('admin.update.info.button') }}
+          </button>
+          <a target="_blank" class="btn btn-default float-right" href="https://github.com/DreamCraft-Tech/blessing-skin-server-patch/releases">
+            {{ trans('admin.update.info.check-github') }}
+          </a>
+        </div>
+      </div>
+      <div class="card card-outline card-secondary">
+        <div class="card-header"><h3 class="card-title">运行包更新</h3></div>
+        <div class="card-body">
+          <p>当前为 Rust 端口，自动下载/安装功能尚未启用。请从发布页获取新版本并手动替换。</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card card-info">
+        <div class="card-header">
+          <h3 class="card-title">{{ trans('admin.update.cautions.title') }}</h3>
+        </div>
+        <div class="card-body">
+          {{ trans('admin.update.cautions.text')|nl2br|safe }}
+          <a target="_blank" href="https://blessing.netlify.com/update-sources.html">
+            {{ trans('admin.update.cautions.link') }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

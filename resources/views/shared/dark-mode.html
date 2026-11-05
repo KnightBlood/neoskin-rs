@@ -1,0 +1,7 @@
+{% if user %}
+  <li class="nav-item" id="toggle-dark-mode">
+    <a class="nav-link" href="#" role="button">
+      <i class="fas fa-{{ 'moon' if dark_mode else 'sun' }}"></i>
+    </a>
+  </li>
+{% endif %}

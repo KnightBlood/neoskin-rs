@@ -1,0 +1,5 @@
+<div class="text-right m-2 p-2">
+  {% for lang in langs %}
+    <a href="{{ lang.url }}" class="mx-2 p-1 label {% if lang.name == lang_name %}label-primary{% else %}label-secondary{% endif %}">{{ lang.name }}</a>
+  {% endfor %}
+</div>

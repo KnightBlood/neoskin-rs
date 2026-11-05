@@ -1,0 +1,17 @@
+pub mod admin;
+pub mod admin_page;
+pub mod auth;
+pub mod closet;
+pub mod communication;
+pub mod health;
+pub mod home;
+pub mod notification;
+pub mod oauth;
+pub mod page;
+pub mod player;
+pub mod report;
+pub mod setup;
+pub mod skinlib;
+pub mod texture;
+pub mod user;
+pub mod user_page;

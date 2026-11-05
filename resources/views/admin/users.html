@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ trans('general.user-manage') }}{% endblock %}
+{% block title_text %}{{ trans('general.user-manage') }}{% endblock %}
+
+{% block before_foot %}
+  <script id="blessing-extra" type="application/json">
+    {{ extra|tojson }}
+  </script>
+{% endblock %}

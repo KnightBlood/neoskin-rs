@@ -1,0 +1,13 @@
+{% extends "setup/base.html" %}
+
+{% block title %}{{ trans('setup.wizard.master.title') }}{% endblock %}
+{% block subtitle %}{{ trans('setup.wizard.welcome.title') }}{% endblock %}
+
+{% block content %}
+  <p>{{ trans('setup.wizard.welcome.text', {'version': version}) }}</p>
+  <p class="step">
+    <a href="{{ url('setup/database') }}" class="btn btn-primary">
+      {{ trans('setup.wizard.welcome.button') }}
+    </a>
+  </p>
+{% endblock %}
