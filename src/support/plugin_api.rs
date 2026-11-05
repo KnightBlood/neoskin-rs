@@ -373,6 +373,16 @@ impl Hook {
         self.badges.read().expect("badge hooks poisoned").clone()
     }
 
+    /// `Hook::sendNotification()`：向若干用户写入站内信。
+    pub async fn send_notification(
+        &self,
+        users: &[crate::models::user::User],
+        title: &str,
+        content: &str,
+    ) -> Result<(), FrameworkError> {
+        crate::support::plugin_api::send_notification(users, title, content).await
+    }
+
     /// `Hook::addRoute()`：回调在核心路由注册后收到路由器。
     pub fn add_route<F>(&self, callback: F)
     where
