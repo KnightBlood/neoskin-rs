@@ -416,6 +416,21 @@ pub async fn delete(name: &str) -> Result<bool, FrameworkError> {
     Ok(true)
 }
 
+/// PHP `PluginManager::boot()`：注册编译期原生插件。
+pub async fn boot() -> Result<(), FrameworkError> {
+    crate::plugins::register_all().await
+}
+
+/// PHP `PluginManager::registerPlugin()`：登记并启动一个原生插件。
+pub fn register_plugin(plugin: std::sync::Arc<dyn crate::support::plugin_api::Plugin>) {
+    crate::support::plugin_api::register_plugin(plugin);
+}
+
+/// PHP `PluginManager::bootPlugin()`：只执行插件的 `boot`。
+pub fn boot_plugin(plugin: &dyn crate::support::plugin_api::Plugin) {
+    plugin.boot(&crate::support::plugin_api::PluginApi);
+}
+
 /// 插件目录中是否存在该插件。
 pub async fn exists(name: &str) -> bool {
     all()

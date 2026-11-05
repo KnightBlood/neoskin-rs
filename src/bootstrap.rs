@@ -16,7 +16,7 @@ pub async fn register() {
     crate::support::install::ensure_lock_for_existing_install(users);
 
     // 注册编译期原生插件（D-001）；插件在此注册 Filter / Hook / 事件。
-    let _ = crate::plugins::register_all().await;
+    let _ = crate::support::plugin::boot().await;
 
     let session_config = SessionConfig::from_env();
     // 静态资源先于会话处理（逻辑前端产物不依赖会话）。
