@@ -322,7 +322,8 @@
     `user_badges`（用户/管理/皮肤库详情）、`content_policy`（上传页）、
     `user`/`admin`/`explore` 菜单、`PluginWasEnabled/Disabled/Deleted`、
     `UserTryToLogin/UserLoggedIn/UserRegistered`、玩家增删改、纹理删除、
-    `UserProfileUpdated`。
+    `UserProfileUpdated`；认证过滤器 `can_login` / `can_register` /
+    `verify_password` / `user_password` / `client_ip`。
   - `Hook::addRoute` 在 `routes::register_with_plugins` 中应用；
     `Hook::pushMiddleware` 由全局 `PluginMiddleware` 串行执行。
   - 限制：没有动态库加载（插件需编译进站点）；`PluginManager` 的

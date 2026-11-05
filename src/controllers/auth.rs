@@ -5,7 +5,7 @@
 
 use chrono::{Duration, Utc};
 use serde::Deserialize;
-use serde_json::{Map, Value};
+use serde_json::{Map, Value, json};
 use suprnova::session::{invalidate_session, regenerate_session_id, session_mut};
 use suprnova::{
     Cache, FrameworkError, HttpResponse, Model, Request, Response, ResponseExt, SessionConfig,
@@ -53,9 +53,17 @@ async fn ensure_remember_token(user: &User) -> Result<String, FrameworkError> {
     Ok(token)
 }
 
+fn client_ip(request: &Request) -> String {
+    let ip = request.ip().unwrap_or_else(|| "unknown".to_string());
+    match crate::support::plugin_api::apply_filter("client_ip", Value::String(ip.clone())) {
+        Value::String(filtered) => filtered,
+        _ => ip,
+    }
+}
+
 #[handler]
 pub async fn login(request: Request) -> Response {
-    let ip = request.ip().unwrap_or_else(|| "unknown".to_string());
+    let ip = client_ip(&request);
     let body: LoginRequest = request.input().await?;
     let identification = body.identification.trim();
     if identification.is_empty() {
@@ -67,6 +75,14 @@ pub async fn login(request: Request) -> Response {
     }
     if !(6..=32).contains(&password_len) {
         return Err(validation_error("password", "密码 必须介于 6 - 32 个字符之间。").into());
+    }
+
+    let can = crate::support::plugin_api::apply_filter("can_login", Value::Null);
+    if !can.is_null() {
+        return Ok(HttpResponse::json(json!({
+            "code": 1,
+            "message": can.as_str().unwrap_or("登录被插件拒绝"),
+        })));
     }
 
     // PHP：同一 IP 失败超过 3 次后要求验证码。
@@ -110,7 +126,11 @@ pub async fn login(request: Request) -> Response {
         "UserTryToLogin",
         serde_json::json!({ "identification": identification, "uid": user.uid }),
     );
-    if !verify_password(&user.password, &body.password) {
+    let passed = verify_password(&user.password, &body.password);
+    let passed = crate::support::plugin_api::apply_filter("verify_password", Value::Bool(passed))
+        .as_bool()
+        .unwrap_or(passed);
+    if !passed {
         login_fails::record(&ip).await;
         return json_response!({
             "code": 1,
@@ -238,8 +258,15 @@ fn is_email(value: &str) -> bool {
 /// POST /auth/register
 #[handler]
 pub async fn register(request: Request) -> Response {
-    let ip = request.ip().unwrap_or_else(|| "unknown".to_string());
+    let ip = client_ip(&request);
     let body: RegisterRequest = request.input().await?;
+    let can = crate::support::plugin_api::apply_filter("can_register", Value::Null);
+    if !can.is_null() {
+        return Ok(HttpResponse::json(json!({
+            "code": 1,
+            "message": can.as_str().unwrap_or("注册被插件拒绝"),
+        })));
+    }
     let register_with_player = options::bool_or("register_with_player_name", true).await?;
     let min = options::int_or("player_name_length_min", 3).await?;
     let max = options::int_or("player_name_length_max", 16).await?;
@@ -342,6 +369,15 @@ pub async fn register(request: Request) -> Response {
     let initial_score = options::int_or("user_initial_score", 1000).await?;
     let password_hash = hash_password(&body.password, None)
         .map_err(|error| FrameworkError::internal(format!("密码哈希失败: {error}")))?;
+    let password_hash = match crate::support::plugin_api::apply_filter(
+        "user_password",
+        Value::String(password_hash),
+    ) {
+        Value::String(filtered) => filtered,
+        _ => {
+            return Err(FrameworkError::internal("插件返回了非法的密码哈希").into());
+        }
+    };
     let now = Utc::now();
     let user = User::create(attrs! {
         email: email.clone(),
@@ -432,7 +468,7 @@ pub struct ForgotRequest {
 #[handler]
 pub async fn forgot(request: Request) -> Response {
     let locale_code = locale::resolve(&request);
-    let ip = request.ip().unwrap_or_else(|| "127.0.0.1".to_string());
+    let ip = client_ip(&request);
     let body: ForgotRequest = request.input().await?;
     if !mail::enabled() {
         return json_response!({
