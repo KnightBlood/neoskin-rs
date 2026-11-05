@@ -1099,6 +1099,14 @@ pub async fn update_page(request: Request) -> Response {
             "enabled": true,
         }),
     );
+    match crate::support::update::pending() {
+        Some(pending) => insert(
+            &mut context,
+            "pending",
+            serde_json::to_value(&pending).unwrap_or(Value::Null),
+        ),
+        None => insert(&mut context, "pending", Value::Null),
+    }
     insert(&mut context, "package", Value::Null);
     insert(&mut context, "patch_releases", json!([]));
     Ok(view::render("admin/update.html", context))
@@ -1417,16 +1425,99 @@ pub async fn market_download(request: Request) -> Response {
     }
 }
 
-/// POST /admin/update/download|install|upload —— 自动更新尚未实现。
+/// POST /admin/update/download —— 下载并暂存运行包。
 #[handler]
-pub async fn update_action(request: Request) -> Response {
+pub async fn update_download(request: Request) -> Response {
     if let Err(response) = require_admin(&request).await {
         return Ok(response);
     }
-    Ok(HttpResponse::json(json!({
-        "code": 1,
-        "message": "自动更新尚未实现",
-    })))
+    let wants_json = request.expects_json();
+    match crate::support::update::download_and_stage().await {
+        Ok(pending) => update_success(
+            wants_json,
+            format!("运行包 {} 已下载并校验，请确认后安装。", pending.version),
+            serde_json::to_value(&pending).unwrap_or(Value::Null),
+        ),
+        Err(error) => update_failure(wants_json, error.to_string()),
+    }
+}
+
+/// POST /admin/update/upload —— 上传运行包并暂存。
+#[handler]
+pub async fn update_upload(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return Ok(response);
+    }
+    let wants_json = request.expects_json();
+    #[derive(serde::Deserialize, Default)]
+    struct Upload {
+        #[serde(default)]
+        package: Option<suprnova::UploadedFile>,
+    }
+    let body: Upload = request.input().await?;
+    let Some(file) = body.package else {
+        return Err(crate::support::api::validation_error("package", "package 不能为空。").into());
+    };
+    let bytes = file.bytes().await?;
+    match crate::support::update::upload_and_stage(&bytes) {
+        Ok(pending) => update_success(
+            wants_json,
+            format!("运行包 {} 已暂存，请确认后安装。", pending.version),
+            serde_json::to_value(&pending).unwrap_or(Value::Null),
+        ),
+        Err(error) => update_failure(wants_json, error.to_string()),
+    }
+}
+
+/// POST /admin/update/install —— 安装已暂存的运行包。
+#[handler]
+pub async fn update_install(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return Ok(response);
+    }
+    let wants_json = request.expects_json();
+    match crate::support::update::install() {
+        Ok(report) => {
+            let suffix = if report.binary_updated {
+                "；二进制已写入 *.new，请重启服务完成替换"
+            } else {
+                "；重启服务后生效"
+            };
+            update_success(
+                wants_json,
+                format!("系统程序已更新到 {}{suffix}", report.version),
+                report.to_json(),
+            )
+        }
+        Err(error) => update_failure(wants_json, error.to_string()),
+    }
+}
+
+fn update_success(wants_json: bool, message: String, data: Value) -> Response {
+    if wants_json {
+        return Ok(HttpResponse::json(json!({
+            "code": 0,
+            "message": message,
+            "data": data,
+        })));
+    }
+    suprnova::session_mut(|session| session.put("update_notice", message));
+    Ok(HttpResponse::text("")
+        .status(302)
+        .header("Location", "/admin/update"))
+}
+
+fn update_failure(wants_json: bool, message: String) -> Response {
+    if wants_json {
+        return Ok(HttpResponse::json(json!({
+            "code": 1,
+            "message": message,
+        })));
+    }
+    suprnova::session_mut(|session| session.put("update_error", message));
+    Ok(HttpResponse::text("")
+        .status(302)
+        .header("Location", "/admin/update"))
 }
 
 /// `ANY /admin/customize` —— POST 保存选项，其余方法渲染页面。

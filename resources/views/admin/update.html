@@ -51,7 +51,33 @@
       <div class="card card-outline card-secondary">
         <div class="card-header"><h3 class="card-title">运行包更新</h3></div>
         <div class="card-body">
-          <p>当前为 Rust 端口，自动下载/安装功能尚未启用。请从发布页获取新版本并手动替换。</p>
+          {% if pending %}
+            <div class="callout callout-warning">
+              已暂存运行包 <strong>v{{ pending.version }}</strong>（{{ pending.platform }}）。
+            </div>
+            <form method="post" action="{{ url('admin/update/install') }}">
+              {{ csrf_field() }}
+              <button class="btn btn-danger" type="submit">安装已暂存的运行包</button>
+            </form>
+            <hr>
+          {% endif %}
+          {% if can_update %}
+            <form method="post" action="{{ url('admin/update/download') }}">
+              {{ csrf_field() }}
+              <button class="btn btn-primary" type="submit">下载并暂存 v{{ info.latest }}</button>
+            </form>
+          {% else %}
+            <p class="text-muted">当前没有可下载的 NeoSkinRS 运行包；请确认更新源提供 <code>runtime: neoskin-rs</code>。</p>
+          {% endif %}
+          <hr>
+          <form method="post" action="{{ url('admin/update/upload') }}" enctype="multipart/form-data">
+            {{ csrf_field() }}
+            <div class="form-group">
+              <label for="update-package">上传运行包（ZIP，包含 manifest.json 和 payload/）</label>
+              <input id="update-package" class="form-control-file" type="file" name="package" accept=".zip" required>
+            </div>
+            <button class="btn btn-default" type="submit">上传并暂存</button>
+          </form>
         </div>
       </div>
     </div>

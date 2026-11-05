@@ -1,7 +1,7 @@
 # NeoSkinRS — 进度快照
 
 > 每次会话结束更新本文件，并在回复末尾给出「进度」一行。
-> 最后更新：2026-11-05。
+> 最后更新：2026-11-06。
 > 目标：Rust 1.94+ / Suprnova v4.6.2 迁移 `blessing-skin-server-Laravel13`（6.0.11_patch）。
 
 ## 1. 总览
@@ -25,7 +25,7 @@
 | Phase 5 安装向导 | 90% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证 |
 | Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
 | Phase 7 插件系统 | 85% | 清单扫描、启停/删除、依赖冲突、README、市场；原生 Rust API（Hook 7 / Filter / 24 Event / Plugin trait）与动态库 ABI v1（`native` 清单字段、描述 JSON、filter/event 回调）已实现；不执行 PHP 插件，动态库无沙箱/卸载 |
-| Phase 8 测试与验证 | 80% | `cargo test` 79 unit + 2 integration（含 dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 8 测试与验证 | 80% | `cargo test` 83 unit + 2 integration（含更新包暂存/安装、dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
@@ -68,9 +68,10 @@
     仅转义 `& < > " '`，与 Twig/PHP 输出一致。
 11. **安装锁**：`storage/install.lock` 缺失时，若库里已有用户则启动自动补锁；
     全新库则由 `POST /setup/finish` 写入。未安装时页面请求 302 `/setup`。
-12. **自动更新**：`GET /admin/update` 已实现真实更新检测（spec=2、PHP 版本、
-    semver 比较）；`download` / `install` / `upload` 仍返回占位响应，因为
-    Rust 端口没有与 PHP patch 包兼容的运行包格式。
+12. **自动更新**：`GET /admin/update` 真实更新检测（spec=2、runtime/platform、
+    semver）；`download` / `upload` 校验并暂存 ZIP，`install` 把 `payload/`
+    写入站点根目录（运行中的二进制写为 `*.new` 并提示重启）。运行包格式见
+    `support/update.rs`；PHP patch 包不会被当作 Rust 运行包。
 13. **邮件**：复用 Suprnova `Mail`（`MAIL_DRIVER`）；`smtp` 需要可用的 SMTP
     服务，本地可用 `MAIL_DRIVER=log` 验证。签名链接使用 APP_KEY 的
     HMAC-SHA256，与 Laravel 算法相同；若 PHP 与 Rust 的 `APP_KEY` 不同，
@@ -256,17 +257,20 @@
 - 更新检测（Phase 4/8）：
   - `GET /admin/update` 读取 `update_source` 选项 / `UPDATE_SOURCE` /
     默认地址，3 秒连接超时、8 秒总超时。
-  - 校验 `spec == 2`，识别 `latest` / `php` / `url` / `package` / `sha256`。
+  - 校验 `spec == 2`，识别 `latest` / `php` / `runtime` / `platform` / `url` /
+    `package` / `sha256`；非 `neoskin-rs` 源明确提示不适用。
   - PHP 版本按 `8.3.0` 参与比较；`_patch` 等后缀会归一化为数字版本。
   - 页面展示最新版本、当前版本、更新可用/已是最新/连接失败。
-  - 下载与安装按钮不执行实际替换（Rust 运行包格式未定义）。
+  - 运行包：`manifest.json`（runtime/version/platform）+ `payload/`；
+    `download`/`upload` 暂存并校验 SHA-256，`install` 写入站点根目录；
+    路径穿越、`.env`/`storage/`/`plugins/`/数据库文件被拒绝。
 - `options` 初始数据：启动时按 PHP `import_options` 写入缺失的默认项，
   `{version}` / `{year}` 已替换，补上 `max_texture_width=8192`。
 - 后台数据接口：`GET /admin/chart`（最近 31 天注册/上传按星期聚合，
   与 PHP `chartData` 的 xAxis/data 结构一致）。
 - 插件/更新端点：`/admin/plugins/{data,manage,readme,config,upload,wget,
-  market/list,market/download}`、`/admin/update/{download,install,upload}`
-  已注册；插件系统未移植，返回占位响应。
+  market/list,market/download}` 与 `/admin/update/{download,install,upload}`
+  均已实现；插件清单/原生 API/动态库、运行包暂存与安装见上文。
 - 存量库兼容验证：
   - 迁移的表与索引均使用 `IF NOT EXISTS`，可接管 Laravel 已建表的 SQLite 库。
   - 以 PHP `database/database.sqlite` 副本启动：迁移通过，`/`、`/skinlib`、
@@ -304,7 +308,8 @@
 1. 插件运行时：原生 Hook / Filter / 24 Event / `Plugin` trait / 动态库 ABI v1
    已落地；后续补沙箱/WASM、插件重写指南与示例生态。
 2. 插件市场：依赖求解（`dependencies.unsatisfied`）、前端页面联调。
-3. 自动更新：Rust 运行包格式定义、下载/校验/安装（当前仅检测）。
+3. 自动更新：运行包格式与 download/upload/install 已实现；后续补发布流水线、
+   二进制重启脚本与回滚。
 4. 数据库矩阵：`tests/db_matrix.rs` 已覆盖 MySQL/MariaDB/PostgreSQL，并在
    MySQL/MariaDB 上断言 PHP 无符号列类型；剩余 SQL Server 范围待框架支持。
 5. PKCE：源项目 `oauth_auth_codes` 表没有 `code_challenge` 列，暂不实现。

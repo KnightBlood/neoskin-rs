@@ -130,9 +130,9 @@ routes! {
     post!("/admin/plugins/wget", controllers::admin_page::plugins_wget).name("admin.plugins.wget"),
     get!("/admin/plugins/market/list", controllers::admin_page::market_list).name("admin.plugins.market.list"),
     post!("/admin/plugins/market/download", controllers::admin_page::market_download).name("admin.plugins.market.download"),
-    post!("/admin/update/download", controllers::admin_page::update_action).name("admin.update.download"),
-    post!("/admin/update/install", controllers::admin_page::update_action).name("admin.update.install"),
-    post!("/admin/update/upload", controllers::admin_page::update_action).name("admin.update.upload"),
+    post!("/admin/update/download", controllers::admin_page::update_download).name("admin.update.download"),
+    post!("/admin/update/install", controllers::admin_page::update_install).name("admin.update.install"),
+    post!("/admin/update/upload", controllers::admin_page::update_upload).name("admin.update.upload"),
 
     // 安装向导（PHP `SetupController`）
     get!("/setup", controllers::setup::welcome).name("setup.view"),

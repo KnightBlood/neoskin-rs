@@ -241,8 +241,8 @@
     与锁文件；用临时 SQLite 库已端到端验证。
   - `GET /admin/chart` 按 PHP `chartData` 输出 `labels`/`xAxis`/`data`；
     Carbon `isoFormat('l')` 固定为英文星期名。
-  - 更新安装端点占位：`/admin/update/{download,install,upload}` 返回
-    `自动更新尚未实现`；插件清单/启停/市场已完成，原生 Hook/Event 运行时未移植。
+  - 更新安装端点：`/admin/update/{download,install,upload}` 已实现
+    运行包暂存/安装；插件清单/启停/市场与原生 API 已实现（见下文）。
 
 - **邮件与签名链接（2026-11-04）**：
   - 邮件走 Suprnova `Mail`（`MAIL_DRIVER=log/smtp/...`）；本地无 SMTP 时用
@@ -348,10 +348,19 @@
     `更新源连接失败` / `HTTP status code: N` / `不支持当前的更新源。`。
   - `php` 字段与固定运行时版本 `8.3.0` 比较；`latest` 与 `6.0.11_patch`
     比较时把后缀归一化为 `6.0.11`，避免误判。
-  - `admin/update/download|install|upload` 仍返回占位 JSON
-    `自动更新尚未实现`：Rust 端口没有定义运行包格式，避免用 PHP patch
-    包覆盖 Rust 文件。
-  - 页面保留 ZIP 运行包区域的说明文字，但不提供实际上传表单。
+  - 运行包格式（`support/update.rs`）：
+    ```text
+    manifest.json   {"runtime":"neoskin-rs","version":"6.0.11","platform":"any"}
+    payload/...     与站点根目录同构
+    ```
+  - `download` / `upload` 只校验并暂存（`storage/framework/update/`），
+    `install` 才写入站点根目录；SHA-256 在暂存/安装两处校验。
+  - 路径穿越、`.env`、`storage/`、`plugins/`、数据库文件会被拒绝；
+    正在运行的二进制写成 `*.new` 并返回 `restart_required`。
+  - 更新源必须是 `runtime: neoskin-rs`；PHP patch 源会提示“不适用”，
+    不会把 PHP 包覆盖到 Rust 站点。
+  - 页面提供下载/上传/安装表单，也支持 `Accept: application/json`
+    的 API 调用。
 
 - **存量库迁移兼容（2026-11-04）**：
   - `create_core_tables` 的 16 张表使用 `IF NOT EXISTS`；10 个索引改为
