@@ -533,6 +533,14 @@ static PLUGINS: LazyLock<RwLock<Vec<Arc<dyn Plugin>>>> = LazyLock::new(|| RwLock
 
 /// 启动一个原生插件并记录，便于停机时 `shutdown`。
 pub fn register_plugin(plugin: Arc<dyn Plugin>) {
+    let already = PLUGINS
+        .read()
+        .expect("plugin registry poisoned")
+        .iter()
+        .any(|existing| existing.name() == plugin.name());
+    if already {
+        return;
+    }
     plugin.boot(&PluginApi);
     PLUGINS
         .write()
