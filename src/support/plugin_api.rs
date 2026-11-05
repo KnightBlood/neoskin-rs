@@ -314,11 +314,24 @@ impl Hook {
     }
 
     pub fn menu_items(&self, category: &str) -> Vec<MenuEntry> {
+        self.menu_items_with_position(category)
+            .into_iter()
+            .map(|(_, item)| item)
+            .collect()
+    }
+
+    /// 带原始 position 的菜单项（供页面合并时插入到指定位置）。
+    pub fn menu_items_with_position(&self, category: &str) -> Vec<(i32, MenuEntry)> {
         self.menus
             .read()
             .expect("menu hooks poisoned")
             .get(category)
-            .map(|entries| entries.iter().map(|entry| entry.item.clone()).collect())
+            .map(|entries| {
+                entries
+                    .iter()
+                    .map(|entry| (entry.position, entry.item.clone()))
+                    .collect()
+            })
             .unwrap_or_default()
     }
 
@@ -588,7 +601,7 @@ pub fn badges(initial: Vec<Value>) -> Vec<Value> {
 
 /// 把 Hook 的菜单项合并到 `menus` 分组（`user` / `admin` / `explore`）。
 pub fn merge_menu_hooks(groups: &mut Value, category: &str, path: &str) {
-    let entries = HOOK.menu_items(category);
+    let entries = HOOK.menu_items_with_position(category);
     if entries.is_empty() {
         return;
     }
@@ -614,8 +627,9 @@ pub fn merge_menu_hooks(groups: &mut Value, category: &str, path: &str) {
     let Some(list) = target.get_mut("items").and_then(Value::as_array_mut) else {
         return;
     };
-    for entry in entries {
-        list.push(entry.to_json(path));
+    for (position, entry) in entries {
+        let index = (position.max(0) as usize).min(list.len());
+        list.insert(index, entry.to_json(path));
     }
 }
 
