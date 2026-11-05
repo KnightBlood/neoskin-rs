@@ -802,4 +802,42 @@ mod tests {
         assert_eq!(hook.user_badges()[0].color, "primary");
         hook.clear();
     }
+
+    struct TestPlugin {
+        seen: Arc<std::sync::Mutex<Vec<Value>>>,
+    }
+
+    impl Plugin for TestPlugin {
+        fn name(&self) -> &str {
+            "neoskin-test-plugin"
+        }
+
+        fn boot(&self, api: &PluginApi) {
+            api.filter("test:plugin-filter", 0, |value| {
+                Value::String(format!("{}!", value.as_str().unwrap_or_default()))
+            });
+            let seen = Arc::clone(&self.seen);
+            api.events().listen("TestPluginEvent", move |event| {
+                seen.lock().unwrap().push(event.payload.clone());
+            });
+        }
+    }
+
+    #[test]
+    fn native_plugin_boot_registers_filter_and_event_once() {
+        let seen = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let plugin: Arc<dyn Plugin> = Arc::new(TestPlugin {
+            seen: Arc::clone(&seen),
+        });
+        register_plugin(Arc::clone(&plugin));
+        // 重复注册应被忽略，避免 boot 执行两次。
+        register_plugin(Arc::clone(&plugin));
+
+        assert_eq!(
+            apply_filter("test:plugin-filter", Value::String("ok".to_string())),
+            Value::String("ok!".to_string())
+        );
+        fire("TestPluginEvent", json!({ "n": 1 }));
+        assert_eq!(seen.lock().unwrap().len(), 1);
+    }
 }

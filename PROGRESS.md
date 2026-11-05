@@ -25,7 +25,7 @@
 | Phase 5 安装向导 | 90% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证 |
 | Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
 | Phase 7 插件系统 | 75% | 清单扫描、启停/删除、依赖冲突、README、市场列表/下载/上传/wget 已完成；原生 Rust API（Hook 7 方法 / Filter / 24 Event / 编译期 Plugin）已实现并接入页面与登录/玩家事件；不执行 PHP 插件代码，动态库加载未做 |
-| Phase 8 测试与验证 | 80% | `cargo test` 74 项 + `tests/db_matrix.rs`（MySQL/MariaDB/PostgreSQL 本机通过，含 MySQL/MariaDB 无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 8 测试与验证 | 80% | `cargo test` 75 项 + `tests/db_matrix.rs`（MySQL/MariaDB/PostgreSQL 本机通过，含 MySQL/MariaDB 无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
