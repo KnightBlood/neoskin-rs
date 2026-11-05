@@ -24,8 +24,8 @@
 | Phase 4 管理面板 | 98% | 14 个页面 + `/admin/chart` 数据接口 + 插件/更新端点；插件系统本体仍为 0% |
 | Phase 5 安装向导 | 90% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证 |
 | Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
-| Phase 7 插件系统 | 75% | 清单扫描、启停/删除、依赖冲突、README、市场列表/下载/上传/wget 已完成；原生 Rust API（Hook 7 方法 / Filter / 24 Event / 编译期 Plugin）已实现并接入页面与登录/玩家事件；不执行 PHP 插件代码，动态库加载未做 |
-| Phase 8 测试与验证 | 80% | `cargo test` 75 项 + `tests/db_matrix.rs`（MySQL/MariaDB/PostgreSQL 本机通过，含 MySQL/MariaDB 无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 7 插件系统 | 85% | 清单扫描、启停/删除、依赖冲突、README、市场；原生 Rust API（Hook 7 / Filter / 24 Event / Plugin trait）与动态库 ABI v1（`native` 清单字段、描述 JSON、filter/event 回调）已实现；不执行 PHP 插件，动态库无沙箱/卸载 |
+| Phase 8 测试与验证 | 80% | `cargo test` 79 unit + 2 integration（含 dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
@@ -301,8 +301,8 @@
 
 ## 6. 下一步
 
-1. 插件运行时：原生 Hook / Filter / 24 Event / `Plugin` trait 已落地；后续补
-   动态库加载（或 WASM/进程隔离）、插件重写指南与授权类过滤器接线。
+1. 插件运行时：原生 Hook / Filter / 24 Event / `Plugin` trait / 动态库 ABI v1
+   已落地；后续补沙箱/WASM、插件重写指南与示例生态。
 2. 插件市场：依赖求解（`dependencies.unsatisfied`）、前端页面联调。
 3. 自动更新：Rust 运行包格式定义、下载/校验/安装（当前仅检测）。
 4. 数据库矩阵：`tests/db_matrix.rs` 已覆盖 MySQL/MariaDB/PostgreSQL，并在

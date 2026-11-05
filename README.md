@@ -22,12 +22,13 @@ NeoSkinRS/
 │   ├── controllers/         # 控制器（auth/user/player/skinlib/admin/...）
 │   ├── models/              # SeaORM entities
 │   ├── migrations/          # 17 张表（含 seaql_migrations）
-│   ├── support/             # PHP 语义、OAuth、视图、插件 API（Filter/Hook/Event）
+│   ├── support/             # PHP 语义、OAuth、视图、插件 API（Filter/Hook/Event/动态库）
 │   ├── plugins/             # 编译期注册的原生 Rust 插件
 │   └── routes.rs
+├── samples/native-plugin/   # ABI v1 动态库插件示例
 ├── resources/views/         # Twig 契约的 MiniJinja 模板
 ├── storage/                 # 运行时数据（不入库）
-└── tests/                   # 单元 + 数据库矩阵
+└── tests/                   # 单元 + 数据库矩阵 + 原生插件 ABI
 ```
 
 ## 快速开始

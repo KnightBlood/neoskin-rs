@@ -1,0 +1,10 @@
+[package]
+name = "neoskin-native-plugin-example"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+# 独立示例，不加入主 crate 的 workspace。
+[workspace]

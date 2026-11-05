@@ -20,6 +20,29 @@
 use suprnova::FrameworkError;
 
 pub async fn register_all() -> Result<(), FrameworkError> {
-    // 默认没有内置原生插件。插件作者在此按 `plugins_enabled` 注册。
+    let enabled = crate::support::plugin::enabled_state().await;
+    if enabled.is_empty() {
+        return Ok(());
+    }
+    let plugins = crate::support::plugin::all().await?;
+    for plugin in plugins {
+        if !enabled.iter().any(|(name, _)| name == &plugin.name) {
+            continue;
+        }
+        let Some(library) =
+            crate::support::native_plugin::library_path(&plugin.manifest, &plugin.path)
+        else {
+            continue;
+        };
+        if let Err(error) = crate::support::native_plugin::load(&library) {
+            crate::support::plugin_api::fire(
+                "PluginBootFailed",
+                serde_json::json!({
+                    "name": plugin.name,
+                    "error": error.to_string(),
+                }),
+            );
+        }
+    }
     Ok(())
 }

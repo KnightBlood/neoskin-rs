@@ -13,6 +13,7 @@ pub mod lang;
 pub mod locale;
 pub mod login_fails;
 pub mod mail;
+pub mod native_plugin;
 pub mod oauth;
 pub mod options;
 pub mod plugin;

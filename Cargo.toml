@@ -81,6 +81,7 @@ serde_yaml = "0.9"
 semver = "1"
 zip = "2"
 minijinja = "2"
+libloading = "0.8"
 
 [package.metadata.suprnova.model]
 datetime_cast = "naive"

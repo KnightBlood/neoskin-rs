@@ -326,9 +326,20 @@
     `verify_password` / `user_password` / `client_ip`。
   - `Hook::addRoute` 在 `routes::register_with_plugins` 中应用；
     `Hook::pushMiddleware` 由全局 `PluginMiddleware` 串行执行。
-  - 限制：没有动态库加载（插件需编译进站点）；`PluginManager` 的
-    `boot`/`registerPlugin`/`bootPlugin` 等价物是 `plugins::register_all` +
-    `register_plugin`；插件市场仍只分发清单，不承诺 PHP 插件可执行。
+  - 动态库插件（ABI v1）：
+    - `package.json` 的 `native` 字段可为字符串或 `{ "library": "…" }`；
+      文件相对插件目录。
+    - 导出 `neoskin_plugin_api_version` / `neoskin_plugin_describe` /
+      `neoskin_plugin_filter`（可选）/ `neoskin_plugin_event`（可选）/
+      `neoskin_plugin_free`。
+    - 描述 JSON 支持 filters、events、menus、styles、scripts、badges；
+      Filter 对返回 JSON 做解析，非法时回退原值。
+    - 示例：`samples/native-plugin/`；集成测试 `tests/native_plugin.rs`
+      （设置 `NEOSKIN_NATIVE_PLUGIN` 运行）。
+  - 限制：动态库是**可信原生代码，无沙箱**；启用/禁用后需重启才能卸载；
+    `PluginManager` 的 `boot`/`registerPlugin`/`bootPlugin` 等价物是
+    `plugins::register_all` + `register_plugin`；插件市场仍只分发清单，
+    不承诺 PHP 插件可执行。
 
 - **更新检测（2026-11-04）**：
   - 更新源优先级：`update_source` 选项 → `UPDATE_SOURCE` 环境变量 →

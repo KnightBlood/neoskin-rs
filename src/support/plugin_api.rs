@@ -279,12 +279,17 @@ struct Positioned<T> {
 
 type RouteHook = Arc<dyn Fn(Router) -> Router + Send + Sync>;
 
+struct PageAssets {
+    pages: Vec<String>,
+    urls: Vec<String>,
+}
+
 /// PHP `App\Services\Hook` 的 7 个方法。
 #[derive(Default)]
 pub struct Hook {
     menus: RwLock<HashMap<String, Vec<Positioned<MenuEntry>>>>,
-    styles: RwLock<HashMap<String, Vec<String>>>,
-    scripts: RwLock<HashMap<String, Vec<String>>>,
+    styles: RwLock<Vec<PageAssets>>,
+    scripts: RwLock<Vec<PageAssets>>,
     badges: RwLock<Vec<Badge>>,
     route_hooks: RwLock<Vec<RouteHook>>,
     middlewares: RwLock<Vec<Arc<dyn Middleware>>>,
@@ -440,29 +445,31 @@ impl Hook {
     }
 }
 
-fn add_page_urls(target: &RwLock<HashMap<String, Vec<String>>>, urls: &[String], pages: &[String]) {
+fn add_page_urls(target: &RwLock<Vec<PageAssets>>, urls: &[String], pages: &[String]) {
     let pages: Vec<String> = if pages.is_empty() {
         vec!["*".to_string()]
     } else {
         pages.to_vec()
     };
-    let mut guard = target.write().expect("page hooks poisoned");
-    for page in pages {
-        let entries = guard.entry(page).or_default();
-        for url in urls {
-            if !entries.contains(url) {
-                entries.push(url.clone());
-            }
-        }
-    }
+    target
+        .write()
+        .expect("page hooks poisoned")
+        .push(PageAssets {
+            pages,
+            urls: urls.to_vec(),
+        });
 }
 
-fn page_urls(target: &RwLock<HashMap<String, Vec<String>>>, page: &str) -> Vec<String> {
+fn page_urls(target: &RwLock<Vec<PageAssets>>, page: &str) -> Vec<String> {
     let guard = target.read().expect("page hooks poisoned");
     let mut result = Vec::new();
-    for (pattern, urls) in guard.iter() {
-        if page_matches(pattern, page) {
-            for url in urls {
+    for entry in guard.iter() {
+        if entry
+            .pages
+            .iter()
+            .any(|pattern| page_matches(pattern, page))
+        {
+            for url in &entry.urls {
                 if !result.contains(url) {
                     result.push(url.clone());
                 }

@@ -12,6 +12,10 @@
 /public/app/
 /public/lang/
 
+# Sample plugin build artifacts
+/samples/*/target/
+/samples/*/Cargo.lock
+
 # IDE
 .idea/
 .vscode/

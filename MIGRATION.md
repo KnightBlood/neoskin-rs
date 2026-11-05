@@ -157,7 +157,8 @@ Suprnova 内置 session（cookie-based），替代 Laravel Session。
 
 ### 8.1 挑战
 
-Rust 是静态编译语言，不支持运行时加载任意 Rust 代码。
+Rust 是静态编译语言，主程序不能直接加载任意 Rust 代码；原生扩展需要
+编译进主程序（`Plugin` trait）或按稳定 C ABI 提供动态库。
 
 ### 8.2 方案选型（D-001）
 
@@ -167,7 +168,7 @@ Rust 是静态编译语言，不支持运行时加载任意 Rust 代码。
 | 方案 | 结论 |
 | --- | --- |
 | 原生 Rust 插件（编译期注册） | ✅ 已实现：`support/plugin_api.rs` + `plugins::register_all` |
-| 动态库 (libloading) | ⚠️ 后续可选；需要稳定 C ABI |
+| 动态库 (libloading) | ✅ ABI v1：`support/native_plugin.rs` + `samples/native-plugin` |
 | WASM / 独立进程 gRPC | ⚠️ 后续可选；不是当前验收项 |
 
 插件 manifest（`package.json`）格式保持不变；PHP 插件代码不可直接执行，
@@ -316,7 +317,7 @@ mock `fetch`。这些 mock 断言了 URL/方法/body/响应形状，等价于一
 - [x] 插件管理
 
 ### Phase 8：测试与验证（3-5 天）
-- [x] 75 个测试用例移植
+- [x] 79 unit + 2 integration 测试用例移植
 - [x] HTTP 契约测试
 - [x] 数据兼容性测试
 
