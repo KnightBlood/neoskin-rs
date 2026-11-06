@@ -42,11 +42,14 @@ jobs:
           rm -rf public/app
           cp -r /tmp/bs/public/app public/app
 
-      - name: Locate Chrome
-        run: |
-          if [ -x /usr/bin/google-chrome ]; then
-            echo "NEOSKIN_CHROME_PATH=/usr/bin/google-chrome" >> "$GITHUB_ENV"
-          fi
+      - name: Setup Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Export Chrome path
+        run: echo "NEOSKIN_CHROME_PATH=${{ steps.chrome.outputs.chrome-path }}" >> "$GITHUB_ENV"
 
       - name: Build
         run: cargo build --tests

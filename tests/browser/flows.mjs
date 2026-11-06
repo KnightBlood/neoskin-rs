@@ -17,7 +17,7 @@ const browser = await chromium.launch({
 })
 
 try {
-  const page = await browser.newPage()
+  const page = await browser.newPage({ locale: 'zh-CN' })
   page.on('console', (message) => {
     if (message.type() === 'error') {
       pageErrors.push(`console.error: ${message.text()}`)
