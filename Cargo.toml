@@ -93,6 +93,8 @@ datetime_cast = "naive"
 # command that finishes or a server that shuts down gracefully writes
 # `dhat-heap.json`. See the manual, "Heap profiling" (deployment.md).
 heap-profiling = ["suprnova/heap-profiling"]
+# 不依赖系统 OpenSSL（Windows arm64 CI 使用；需要 Perl + NASM）。
+vendored-openssl = ["openssl/vendored"]
 
 # The release profile with debug symbols, for samply, perf, or a heap
 # profile with readable stacks.

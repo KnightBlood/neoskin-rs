@@ -92,6 +92,24 @@ cargo test
 | [DEPLOYMENT.md](DEPLOYMENT.md) | 构建、配置、部署与升级 |
 | [DB-MATRIX.md](DB-MATRIX.md) | 数据库矩阵 |
 
+## 支持平台
+
+| 平台 | 架构 | CI |
+| --- | --- | --- |
+| Linux | x86_64 / aarch64 | `platform` 矩阵：`cargo test` |
+| Windows | x86_64 / arm64 | 同上 |
+| macOS | x86_64 / arm64 | 同上 |
+
+默认使用系统 OpenSSL（Windows 用便携版 `OPENSSL_DIR`）。没有系统 OpenSSL 时
+可启用 `vendored-openssl`（需要 Perl + NASM）：
+
+```bash
+cargo build --features vendored-openssl
+cargo build --target aarch64-unknown-linux-gnu
+cargo build --target aarch64-pc-windows-msvc --features vendored-openssl
+cargo build --target aarch64-apple-darwin --features vendored-openssl
+```
+
 ## 硬约束
 
 1. HTTP 接口零变更（路径/参数/响应结构）

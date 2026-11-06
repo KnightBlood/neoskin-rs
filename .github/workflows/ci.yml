@@ -40,6 +40,47 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --lib --tests
 
+  platform:
+    name: Platform (${{ matrix.os }} / ${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, arch: x64, features: "" }
+          - { os: ubuntu-24.04-arm, arch: arm64, features: "" }
+          - { os: windows-latest, arch: x64, features: "vendored-openssl" }
+          - { os: windows-11-arm, arch: arm64, features: "vendored-openssl" }
+          - { os: macos-15-intel, arch: x64, features: "" }
+          - { os: macos-latest, arch: arm64, features: "" }
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+      - name: Install Linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+      - name: Install macOS deps
+        if: runner.os == 'macOS'
+        run: |
+          brew install openssl@3
+          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> "$GITHUB_ENV"
+      - name: Install Windows deps
+        if: runner.os == 'Windows'
+        run: choco install nasm -y --no-progress
+      - uses: Swatinem/rust-cache@v2
+      - name: Test (system OpenSSL)
+        if: matrix.features == ''
+        run: cargo test --lib --tests
+      - name: Test (vendored OpenSSL)
+        if: matrix.features != ''
+        run: cargo test --lib --tests --features ${{ matrix.features }}
+
   db-matrix:
     name: DB matrix (${{ matrix.db }})
     runs-on: ubuntu-latest
