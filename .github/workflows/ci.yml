@@ -1,0 +1,57 @@
+name: CI — browser E2E
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  browser-e2e:
+    name: Browser E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.94.0
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev unzip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install browser test deps
+        run: npm ci --prefix tests/browser
+
+      - name: Fetch legacy frontend assets
+        run: |
+          set -euo pipefail
+          curl -sSLo /tmp/bs.zip \
+            "https://github.com/DreamCraft-Tech/blessing-skin-server-patch/releases/download/v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
+          echo "bb94f83718f3fca3737a04b2097e747720ebd5966979cf042dbbba5434da3e73  /tmp/bs.zip" | sha256sum -c -
+          unzip -q /tmp/bs.zip -d /tmp/bs
+          mkdir -p public
+          rm -rf public/app
+          cp -r /tmp/bs/public/app public/app
+
+      - name: Locate Chrome
+        run: |
+          if [ -x /usr/bin/google-chrome ]; then
+            echo "NEOSKIN_CHROME_PATH=/usr/bin/google-chrome" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build
+        run: cargo build --tests
+
+      - name: Browser E2E
+        env:
+          NEOSKIN_BROWSER_E2E: "1"
+        run: cargo test --test browser -- --nocapture

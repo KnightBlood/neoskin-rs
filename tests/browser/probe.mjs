@@ -1,0 +1,12 @@
+import { chromium } from 'playwright-core';
+const b=await chromium.launch({executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',headless:true});
+const p=await b.newPage();
+p.on('console',m=>console.log('CONSOLE',m.type(),m.text()));
+p.on('pageerror',e=>console.log('PAGEERROR',e.message));
+p.on('response',r=>{if(r.status()>=400) console.log('HTTP',r.status(),r.url())});
+await p.goto('http://127.0.0.1:8775/auth/login',{waitUntil:'load'});
+await p.waitForTimeout(5000);
+console.log('URL',p.url());
+console.log('MAIN',await p.locator('main').innerHTML());
+console.log('BODY', (await p.locator('body').innerText()).slice(0,300));
+await b.close();
