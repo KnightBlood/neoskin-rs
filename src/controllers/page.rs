@@ -9,6 +9,13 @@ use crate::models::user::User;
 use crate::support::auth::current_user;
 use crate::support::{login_fails, options, view};
 
+pub(crate) fn frontend_mode() -> String {
+    match std::env::var("FRONTEND_MODE") {
+        Ok(value) if value.eq_ignore_ascii_case("next") => "next".to_string(),
+        _ => "legacy".to_string(),
+    }
+}
+
 fn csrf_token() -> String {
     suprnova::get_csrf_token().unwrap_or_default()
 }
@@ -114,6 +121,11 @@ pub(crate) async fn shell(request: &Request) -> (String, Value) {
 /// GET / —— 首页。
 #[handler]
 pub async fn home(request: Request) -> Response {
+    if frontend_mode() == "next" {
+        return Ok(HttpResponse::text("")
+            .status(302)
+            .header("Location", "/app-next/site/"));
+    }
     let (locale, mut context) = shell(&request).await;
     let description = localized("site_description", &locale).await;
     let home_pic_url = options::value("home_pic_url")

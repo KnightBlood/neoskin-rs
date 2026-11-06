@@ -152,6 +152,11 @@ fn translated(locale_code: &str, key: &str) -> String {
 /// GET /admin
 #[handler]
 pub async fn index(request: Request) -> Response {
+    if crate::controllers::page::frontend_mode() == "next" {
+        return Ok(suprnova::HttpResponse::text("")
+            .status(302)
+            .header("Location", "/app-next/admin/"));
+    }
     let user = match require_admin(&request).await {
         Ok(user) => user,
         Err(response) => return Ok(response),
