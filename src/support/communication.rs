@@ -1,12 +1,100 @@
 //! 通信内容渲染（对应 PHP `App\Services\CommunicationRenderer`）。
 //!
-//! 使用 `pulldown-cmark` 渲染 GFM Markdown；PHP 还会做 DOM 白名单清洗，
-//! 这里暂未复刻（内容仅管理员可写），差异登记在 `PORT-NOTES.md`。
+//! 使用 `pulldown-cmark` 渲染 GFM Markdown，再用 `ammonia` 做与 PHP
+//! `sanitize()` 对齐的标签/属性/URL 白名单清洗。
 
+use std::collections::{HashMap, HashSet};
+
+use ammonia::Builder;
 use pulldown_cmark::{Options, Parser, html};
 use serde_json::{Value, json};
 
 use crate::models::communication::Communication;
+
+/// PHP `sanitize()` 允许的标签集合。
+const ALLOWED_TAGS: &[&str] = &[
+    "div",
+    "span",
+    "p",
+    "br",
+    "hr",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "ul",
+    "ol",
+    "li",
+    "strong",
+    "b",
+    "em",
+    "i",
+    "u",
+    "s",
+    "del",
+    "small",
+    "blockquote",
+    "pre",
+    "code",
+    "a",
+    "button",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "details",
+    "summary",
+    "img",
+];
+
+/// PHP 对所有元素保留的属性（`style` 只保留 font-weight/padding，这里直接丢弃）。
+const GENERIC_ATTRIBUTES: &[&str] = &[
+    "id",
+    "class",
+    "title",
+    "alt",
+    "data-toggle",
+    "data-target",
+    "aria-controls",
+    "aria-expanded",
+    "role",
+    "open",
+];
+
+/// 清洗 HTML（PHP `CommunicationRenderer::sanitize` 的等价实现）。
+///
+/// 与 PHP 的差异：不做 `id` 前缀重写、`class`/`style` 值过滤；
+/// `style` 整体丢弃（PHP 只保留 font-weight/padding）。差异见 `PORT-NOTES.md`。
+pub fn sanitize(html: &str) -> String {
+    let mut tags = HashSet::new();
+    tags.extend(ALLOWED_TAGS.iter().copied());
+
+    let mut generic = HashSet::new();
+    generic.extend(GENERIC_ATTRIBUTES.iter().copied());
+
+    let mut tag_attributes: HashMap<&str, HashSet<&str>> = HashMap::new();
+    tag_attributes.insert("a", HashSet::from(["href"]));
+    tag_attributes.insert("img", HashSet::from(["src"]));
+    tag_attributes.insert("button", HashSet::from(["type"]));
+
+    let mut schemes = HashSet::new();
+    schemes.insert("http");
+    schemes.insert("https");
+    schemes.insert("mailto");
+
+    Builder::default()
+        .tags(tags)
+        .generic_attributes(generic)
+        .tag_attributes(tag_attributes)
+        .url_schemes(schemes)
+        .link_rel(Some("noopener noreferrer"))
+        .clean(html)
+        .to_string()
+}
 
 pub fn markdown(source: &str) -> String {
     let mut options = Options::empty();
@@ -76,7 +164,7 @@ pub fn render_blocks(blocks: &Value) -> String {
             _ => output.push_str(&content),
         }
     }
-    output
+    sanitize(&output)
 }
 
 /// 渲染一条通信（`source` 或 `blocks` 编辑器）。
@@ -90,7 +178,7 @@ pub fn render_communication(communication: &Communication) -> String {
             return html;
         }
     }
-    markdown(communication.source.as_deref().unwrap_or(""))
+    sanitize(&markdown(communication.source.as_deref().unwrap_or("")))
 }
 
 /// 把编辑器数据（title/editor/source/blocks）渲染为 HTML。
@@ -103,7 +191,9 @@ pub fn render_data(data: &Value) -> String {
             return html;
         }
     }
-    markdown(data.get("source").and_then(Value::as_str).unwrap_or(""))
+    sanitize(&markdown(
+        data.get("source").and_then(Value::as_str).unwrap_or(""),
+    ))
 }
 
 fn strip_tags(html: &str) -> String {
@@ -200,6 +290,39 @@ mod tests {
     #[test]
     fn markdown_renders_strong() {
         assert!(markdown("**bold**").contains("<strong>bold</strong>"));
+    }
+
+    #[test]
+    fn sanitize_strips_scripts_and_event_handlers() {
+        let html = sanitize(
+            "<div class=\"alert alert-info\" onclick=\"evil()\">ok<script>alert(1)</script>\
+             <img src=\"https://example.com/a.png\" onerror=\"evil()\"></div>",
+        );
+        assert!(html.contains("<div"));
+        assert!(html.contains("alert-info"));
+        assert!(html.contains("https://example.com/a.png"));
+        assert!(!html.contains("<script"));
+        assert!(!html.contains("onclick"));
+        assert!(!html.contains("onerror"));
+    }
+
+    #[test]
+    fn sanitize_drops_javascript_urls_but_keeps_relative_links() {
+        let html =
+            sanitize("<a href=\"javascript:alert(1)\">bad</a><a href=\"/user/profile\">ok</a>");
+        assert!(!html.contains("javascript:"));
+        assert!(html.contains("/user/profile"));
+        assert!(html.contains("rel=\"noopener noreferrer\""));
+    }
+
+    #[test]
+    fn render_data_sanitizes_source_html() {
+        let html = render_data(&serde_json::json!({
+            "editor": "source",
+            "source": "<script>alert(1)</script>\n\nhello"
+        }));
+        assert!(!html.contains("<script"));
+        assert!(html.contains("hello"));
     }
 
     #[test]

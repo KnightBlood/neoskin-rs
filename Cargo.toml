@@ -76,6 +76,7 @@ openssl = "0.10"
 jsonwebtoken = "9"
 regex = "1"
 pulldown-cmark = "0.12"
+ammonia = "4"
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde_yaml = "0.9"
 semver = "1"

@@ -133,7 +133,9 @@
     始终可见；有则要求 `communications.status='published'`、`kind in
     (message,both)` 且 `delivery_token` 一致。
   - Markdown 使用 `pulldown-cmark`（GFM）渲染；PHP `CommunicationRenderer`
-    的 DOM 白名单清洗尚未移植（内容仅管理员可写，风险受控），后续补。
+    的 DOM 白名单清洗已用 `ammonia` 复刻（标签/属性/URL scheme 白名单、
+    `rel="noopener noreferrer"`、相对链接保留）。差异：不做 `id` 前缀重写与
+    `class`/`style` 值过滤，`style` 整体丢弃（PHP 只保留 font-weight/padding）。
   - `blocks` 编辑器按 PHP 的结构生成 heading/alert/collapse/divider HTML。
 - **注册（2026-11-03）**：验证码、邮箱唯一、密码 8–32、角色名规则、
   `regs_per_ip`、初始积分、`register_with_player_name` 开关、注册后自动登录

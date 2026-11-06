@@ -3925,6 +3925,7 @@ dependencies = [
 name = "neoskin_rs"
 version = "0.1.0"
 dependencies = [
+ "ammonia",
  "async-trait",
  "base64 0.22.1",
  "bcrypt 0.19.3",
