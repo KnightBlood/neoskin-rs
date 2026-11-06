@@ -105,6 +105,44 @@ fn environment() -> &'static Environment<'static> {
 /// 没有落盘的编译产物；下次渲染会重新读取模板文件，因此这里是 no-op。
 pub fn clear_cache() {}
 
+/// 在 `public/app` 中挑选带哈希的产物；找不到时回退 6.0.11 的文件名。
+///
+/// CI 拉取的是 6.0.10 发布包，硬编码 6.0.11 哈希会 404；这里按实际目录解析。
+fn pick_asset(prefix: &str, suffix: &str, fallback: &str) -> String {
+    let directory = std::path::Path::new("public/app");
+    if let Ok(entries) = std::fs::read_dir(directory) {
+        let mut names: Vec<String> = entries
+            .flatten()
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .filter(|name| name.starts_with(prefix) && name.ends_with(suffix))
+            .collect();
+        if names.iter().any(|name| name == fallback) {
+            return fallback.to_string();
+        }
+        names.sort();
+        if let Some(name) = names.pop() {
+            return name;
+        }
+    }
+    fallback.to_string()
+}
+
+/// `app / style / home / home_css / spectre` 五个生产资源 URL。
+pub fn asset_urls(cdn: &str) -> serde_json::Value {
+    let root = if cdn.is_empty() {
+        "/app".to_string()
+    } else {
+        format!("{}/app", cdn.trim_end_matches('/'))
+    };
+    json!({
+        "app": format!("{root}/{}", pick_asset("app.", ".js", "app.7278b90.js")),
+        "style": format!("{root}/{}", pick_asset("style.", ".css", "style.1dd8a8a.css")),
+        "home": format!("{root}/{}", pick_asset("home.", ".js", "home.fe8cbb3.js")),
+        "home_css": format!("{root}/{}", pick_asset("home-css.", ".css", "home-css.6c76352.css")),
+        "spectre": format!("{root}/{}", pick_asset("spectre.", ".css", "spectre.e885dd0.css")),
+    })
+}
+
 /// 渲染模板，失败时返回 500 文本（包含模板错误，便于本地开发）。
 pub fn render(name: &str, context: serde_json::Value) -> HttpResponse {
     let env = environment();
@@ -217,6 +255,7 @@ pub async fn base_context(
     let scripts = crate::support::plugin_api::scripts(request_path);
 
     json!({
+        "assets": asset_urls(&cdn),
         "locale": locale_dash,
         "locale_raw": locale,
         "site_name": site_name,
