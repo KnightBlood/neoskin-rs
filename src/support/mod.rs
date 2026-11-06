@@ -22,6 +22,7 @@ pub mod plugin_market;
 pub mod remember;
 pub mod signed_url;
 pub mod skin;
+pub mod skin3d;
 pub mod static_middleware;
 pub mod storage;
 pub mod update;

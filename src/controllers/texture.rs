@@ -2,10 +2,10 @@
 //!
 //! 已实现：CustomSkinAPI 的 `/{player}.json`、`/csl/{player}.json`，
 //! 原始文件 `/textures/{hash}`、`/csl/textures/{hash}`、`/raw/{tid}`，
-//! 以及 2D 头像 `avatar/*` 与预览 `preview/*`。
+//! 以及头像 `avatar/*` 与预览 `preview/*`。
 //!
-//! 皮肤渲染见 `support::skin`：2D 视图由皮肤贴图拼接；`?3d` 暂时回退为
-//! 2D 头像，输出固定 PNG（PHP 默认 WebP）。
+//! 皮肤渲染见 `support::skin`（2D）与 `support::skin3d`（等距 3D 头像）；
+//! 输出固定 PNG（PHP 默认 WebP）。
 
 use chrono::{DateTime, Utc};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
@@ -16,6 +16,7 @@ use crate::models::player::Player;
 use crate::models::texture::{Column as TextureColumn, Entity as Texture, Model as TextureModel};
 use crate::models::user::User;
 use crate::support::options;
+use crate::support::skin3d;
 use crate::support::storage;
 
 /// 去掉 URL 里的 `.json` 后缀；不是 `.json` 时返回 404。
@@ -221,7 +222,15 @@ fn avatar_for(request: &Request, texture: Option<&TextureModel>) -> Response {
         .filter(|texture| storage::exists(&texture.hash))
         .and_then(|texture| storage::read(&texture.hash).ok())
         .and_then(|data| skin::decode(&data))
-        .map(|skin_image| skin::resize_square(&skin::head(&skin_image), size))
+        .map(|skin_image| {
+            // PHP: render2dAvatar/render3dAvatar($file, 25) → Intervention resize($size)
+            if three_d {
+                let rendered = skin3d::render_3d_avatar(&skin_image, 25.0);
+                skin3d::resize_bilinear(&rendered, size, size)
+            } else {
+                skin::resize_square(&skin::head(&skin_image), size)
+            }
+        })
         .or_else(|| skin::fallback(three_d).map(|fallback| skin::resize_square(&fallback, size)));
     match image {
         Some(image) => image_response(&image),

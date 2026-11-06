@@ -122,9 +122,12 @@
     动态段，静态路由优先匹配，不影响 `/admin`、`/api/...` 等。
   - 纹理文件根目录：`TEXTURES_DIR` → `NEOSKIN_STORAGE_ROOT/textures` →
     `storage/textures`；hash 仅允许十六进制与 `-`/`_`，防止路径穿越。
-  - `avatar/*` 与 `preview/*` 为 2D 渲染（`support/skin.rs`）：头部叠加帽子层、
-    正/背面按头/身体/手脚拼接，支持 Alex 细手臂与 64×32 旧皮肤。
-  - 偏差：`?3d` 暂与 2D 相同；输出固定 PNG（PHP 默认 WebP）；
+  - `avatar/*` 与 `preview/*`：2D 视图见 `support/skin.rs`（头部叠加帽子层、
+    正/背面按头/身体/手脚拼接，支持 Alex 细手臂与 64×32 旧皮肤）。
+  - `?3d` 头像见 `support/skin3d.rs`：移植 `Blessing\Renderer\SkinRenderer`
+    （等距投影 + 多边形扫描线 + 双线性缩放）。已用同一合成皮肤与 Go 端口
+    做像素级对比：`ratio=25` 输出 318×338、最终 45×45 均 **0 像素差异**。
+  - 偏差：输出固定 PNG（PHP 默认 WebP）；
     预览画布尺寸与 PHP 的多边形渲染略有差异（约 429×444 vs 430×437）。
   - 备用头像使用源项目 `resources/misc/textures/avatar{2d,3d}.png`，
     通过 `include_bytes!` 内嵌。

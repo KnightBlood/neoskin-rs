@@ -23,9 +23,9 @@
 | Phase 3 核心业务控制器 | 100% | 业务 API、后台管理、邮件相关流程（依赖 SMTP 配置）全部实现 |
 | Phase 4 管理面板 | 98% | 14 个页面 + `/admin/chart` 数据接口 + 插件/更新端点；插件系统本体仍为 0% |
 | Phase 5 安装向导 | 100% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证；`InstallMiddleware` 在版本落后时请求期执行 `update` |
-| Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
+| Phase 6 前端/视图 | 87% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证；`?3d` 头像已补齐（与 Go 端口像素级一致） |
 | Phase 7 插件系统 | 85% | 清单扫描、启停/删除、依赖冲突、README、市场；原生 Rust API（Hook 7 / Filter / 24 Event / Plugin trait）与动态库 ABI v1（`native` 清单字段、描述 JSON、filter/event 回调）已实现；不执行 PHP 插件，动态库无沙箱/卸载 |
-| Phase 8 测试与验证 | 87% | `cargo test` 93 unit + 4 integration（含升级版本比较/幂等 procedure、通信 HTML 清洗、更新包暂存/安装、dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 8 测试与验证 | 88% | `cargo test` 96 unit + 4 integration（含 3D 头像与 Go 对拍、升级版本比较/幂等 procedure、通信 HTML 清洗、更新包暂存/安装、dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
@@ -122,6 +122,9 @@
 - `POST /oauth/token`：新增 `client_credentials` grant 与 HTTP Basic 客户端认证。
 - `support/communication.rs`：用 `ammonia` 补齐 PHP `CommunicationRenderer::sanitize`
   的标签/属性/URL 白名单清洗；新增 script/onerror/javascript: 单测。
+- `support/skin3d.rs`：移植完整 3D 头像渲染器（等距投影、扫描线填充、
+  Alex/旧皮肤、双层帽子）；`?3d` 不再回退 2D。与 Go 端口对同一合成皮肤
+  做像素级对比：ratio=25 输出 318×338、45×45 均 0 差异。单测 96 全绿。
 - 单元测试新增版本比较 / procedure 幂等 / CLI options 缓存导出；`cargo fmt --check`、
   `clippy -D warnings`、`cargo test` 全部通过。
 
