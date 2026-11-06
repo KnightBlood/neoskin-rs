@@ -99,6 +99,12 @@ fn environment() -> &'static Environment<'static> {
     })
 }
 
+/// `php artisan view:clear` 的等价物。
+///
+/// MiniJinja 的运行期缓存由 `Environment::get_template` 内部维护，本工程
+/// 没有落盘的编译产物；下次渲染会重新读取模板文件，因此这里是 no-op。
+pub fn clear_cache() {}
+
 /// 渲染模板，失败时返回 500 文本（包含模板错误，便于本地开发）。
 pub fn render(name: &str, context: serde_json::Value) -> HttpResponse {
     let env = environment();
@@ -236,7 +242,7 @@ pub async fn base_context(
             "locale": locale,
             "base_url": base_url.clone(),
             "site_name": site_name,
-            "route": request_path,
+            "route": request_path.trim_matches('/'),
         },
         "i18n": lang_url(locale),
         "links": links,

@@ -22,10 +22,10 @@
 | Phase 2 认证与授权 | 100% | Session/记住我/验证码；OAuth 管理、个人令牌、Bearer、授权码 + refresh 交换、authorize/approve/deny 全部 HTTP 验证；忘记密码/重置/邮箱验证已接通 |
 | Phase 3 核心业务控制器 | 100% | 业务 API、后台管理、邮件相关流程（依赖 SMTP 配置）全部实现 |
 | Phase 4 管理面板 | 98% | 14 个页面 + `/admin/chart` 数据接口 + 插件/更新端点；插件系统本体仍为 0% |
-| Phase 5 安装向导 | 90% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证 |
+| Phase 5 安装向导 | 100% | `setup` 欢迎/数据库/信息/完成四页、安装锁、超管创建已端到端验证；`InstallMiddleware` 在版本落后时请求期执行 `update` |
 | Phase 6 前端/视图 | 85% | 静态资源、`/lang`、MiniJinja 引擎与 50+ 模板；home/auth/user/skinlib/admin/setup/errors 页面已迁移并运行时验证 |
 | Phase 7 插件系统 | 85% | 清单扫描、启停/删除、依赖冲突、README、市场；原生 Rust API（Hook 7 / Filter / 24 Event / Plugin trait）与动态库 ABI v1（`native` 清单字段、描述 JSON、filter/event 回调）已实现；不执行 PHP 插件，动态库无沙箱/卸载 |
-| Phase 8 测试与验证 | 80% | `cargo test` 83 unit + 2 integration（含更新包暂存/安装、dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
+| Phase 8 测试与验证 | 85% | `cargo test` 90 unit + 4 integration（含升级版本比较/幂等 procedure、更新包暂存/安装、dynamic plugin ABI、MySQL/MariaDB/PostgreSQL 矩阵与无符号 DDL 断言）；SQLite/MySQL 登录、页面、衣柜、OAuth 客户端冒烟通过 |
 
 
 ## 3. 环境与依赖
@@ -66,9 +66,18 @@
    `POST /admin/communications/{id}`（另注册 `admin.communications.update.post`）。
 10. **Twig 转义**：MiniJinja 默认把 `/` 转成 `&#x2f;`，已安装自定义 formatter
     仅转义 `& < > " '`，与 Twig/PHP 输出一致。
-11. **安装锁**：`storage/install.lock` 缺失时，若库里已有用户则启动自动补锁；
-    全新库则由 `POST /setup/finish` 写入。未安装时页面请求 302 `/setup`。
-12. **自动更新**：`GET /admin/update` 真实更新检测（spec=2、runtime/platform、
+11. **安装锁与请求期升级**：`storage/install.lock` 缺失时，若库里已有用户则启动
+    自动补锁；全新库则由 `POST /setup/finish` 写入。未安装时页面请求 302 `/setup`。
+    已安装且 `options.version` 落后时，`InstallMiddleware` 在请求期执行
+    `support::upgrade::run_if_needed()`（5.0.0 背景图迁移 + 版本号 + migrate +
+    `view:clear` + 补锁 + 清缓存），并发由异步互斥锁串行化，失败下个请求重试。
+12. **CLI**：`src/commands/maintenance.rs` 提供 `update`、`bs:install`、
+    `options:cache`、`plugin:enable|disable`、`salt:random`，由 Suprnova
+    `inventory` 自动注册到 `console` 二进制。
+13. **OAuth grant**：`POST /oauth/token` 支持 `authorization_code`、`refresh_token`
+    与 `client_credentials`；三种 grant 均接受 HTTP Basic 或表单客户端凭据。
+    `password` grant 按 PHP 默认保持关闭。
+14. **自动更新**：`GET /admin/update` 真实更新检测（spec=2、runtime/platform、
     semver）；`download` / `upload` 校验并暂存 ZIP，`install` 把 `payload/`
     写入站点根目录（运行中的二进制写为 `*.new` 并提示重启）。运行包格式见
     `support/update.rs`；PHP patch 包不会被当作 Rust 运行包。
@@ -102,6 +111,17 @@
     `i32`，跨类型访问显式转换。详见 `PORT-NOTES.md`。
 
 ## 5. 已完成功能
+
+### 2026-11-06（后端补齐：请求期升级 + CLI + client_credentials）
+
+- `src/support/upgrade.rs`：PHP `UpdateCommand` 的共享实现（5.0.0 背景图迁移、
+  版本号、迁移、清视图缓存、补 `install.lock`、清 Cache），并发串行化；
+  `InstallMiddleware` 在 `options.version` 落后时请求期调用。
+- `src/commands/maintenance.rs`：`update`、`bs:install`、`options:cache`、
+  `plugin:enable|disable`、`salt:random`；`console --help` 已列出。
+- `POST /oauth/token`：新增 `client_credentials` grant 与 HTTP Basic 客户端认证。
+- 单元测试新增版本比较 / procedure 幂等 / CLI options 缓存导出；`cargo fmt --check`、
+  `clippy -D warnings`、`cargo test` 全部通过。
 
 - 项目骨架：`cargo build`、`cargo clippy -- -D warnings`、健康检查。
 - 16 张业务表迁移（SQLite 已验证，MySQL/PostgreSQL 驱动已启用）。

@@ -25,4 +25,5 @@ pub mod skin;
 pub mod static_middleware;
 pub mod storage;
 pub mod update;
+pub mod upgrade;
 pub mod view;

@@ -5,3 +5,5 @@
 //! `src/bin/console.rs` dispatches to them automatically. Use
 //! `suprnova make:command <name>` to scaffold a new command with
 //! the right shape.
+
+pub mod maintenance;

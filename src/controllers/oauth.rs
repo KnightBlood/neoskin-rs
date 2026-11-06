@@ -757,6 +757,8 @@ pub struct TokenRequest {
     pub redirect_uri: Option<String>,
     #[serde(default)]
     pub refresh_token: Option<String>,
+    #[serde(default)]
+    pub scope: Option<String>,
 }
 
 /// 解析 `Authorization: Basic base64(client_id:client_secret)`。
@@ -782,6 +784,7 @@ pub async fn token(request: Request) -> Response {
     match body.grant_type.trim() {
         "authorization_code" => token_from_code(body, basic).await,
         "refresh_token" => token_from_refresh(body, basic).await,
+        "client_credentials" => token_from_client_credentials(body, basic).await,
         grant => Ok(oauth_support::error_response(
             400,
             "unsupported_grant_type",
@@ -984,6 +987,71 @@ async fn token_from_refresh(body: TokenRequest, basic: Option<(String, String)>)
         .await?;
 
     let issued = oauth_support::issue(user_id, client_id, name.as_deref(), &scopes, true).await?;
+    Ok(HttpResponse::json(oauth_support::token_response(&issued)))
+}
+
+/// `client_credentials` grant（Passport 默认启用，`password` grant 默认关闭）。
+///
+/// 与授权码流程不同：没有用户、没有 refresh token；`scope` 省略时退回
+/// Passport 的默认 scope `User.Read`。
+async fn token_from_client_credentials(
+    body: TokenRequest,
+    basic: Option<(String, String)>,
+) -> Response {
+    let client_id = basic
+        .as_ref()
+        .and_then(|(id, _)| id.parse::<u64>().ok())
+        .or_else(|| {
+            body.client_id
+                .as_deref()
+                .and_then(|value| value.parse::<u64>().ok())
+        });
+    let Some(client_id) = client_id else {
+        return Ok(oauth_support::error_response(
+            401,
+            "invalid_client",
+            "Client authentication failed.",
+        ));
+    };
+
+    let Some(client) = OAuthClient::find(client_id).await? else {
+        return Ok(oauth_support::error_response(
+            401,
+            "invalid_client",
+            "Client authentication failed.",
+        ));
+    };
+    if client.revoked {
+        return Ok(oauth_support::error_response(
+            401,
+            "invalid_client",
+            "Client is revoked.",
+        ));
+    }
+    if let Some(hash) = client.secret.as_deref() {
+        let provided = basic
+            .as_ref()
+            .map(|(_, secret)| secret.as_str())
+            .or(body.client_secret.as_deref())
+            .unwrap_or("");
+        if !verify_password(hash, provided) {
+            return Ok(oauth_support::error_response(
+                401,
+                "invalid_client",
+                "Client authentication failed.",
+            ));
+        }
+    }
+
+    let scopes = body
+        .scope
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(oauth_support::parse_scopes)
+        .unwrap_or_else(|| vec!["User.Read".to_string()]);
+
+    let issued = oauth_support::issue(None, client.id, None, &scopes, false).await?;
     Ok(HttpResponse::json(oauth_support::token_response(&issued)))
 }
 
