@@ -166,6 +166,15 @@ pub fn library_path(manifest: &Value, plugin_dir: &Path) -> Option<PathBuf> {
     if library.is_empty() {
         return None;
     }
+    // 跨平台拒绝 Windows 盘符 / UNC / 反斜杠，以及 Unix 绝对路径。
+    // `Path::components` 在非 Windows 主机上不会识别 `C:\...`，必须在字符串层判定。
+    let bytes = library.as_bytes();
+    if library.contains('\\')
+        || library.starts_with('/')
+        || (bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':')
+    {
+        return None;
+    }
     let relative = Path::new(library);
     if relative.components().any(|component| {
         matches!(
