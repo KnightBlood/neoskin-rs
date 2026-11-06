@@ -1,5 +1,7 @@
 # NeoSkinRS
 
+> 最后更新：2026-11-06
+
 Rust / Suprnova 实现的 Minecraft 皮肤托管平台后端，迁移自 `blessing-skin-server-Laravel13`（6.0.11_patch）。
 
 ## 技术栈
@@ -77,10 +79,18 @@ cargo test
 | POST | `/auth/logout` | 清除 Session 与 remember cookie |
 | GET | `/api/user` | 当前用户；未登录 401 JSON |
 
-## 文档
+## 文档索引
 
-- [MIGRATION.md](./MIGRATION.md) — 迁移计划与阶段划分
-- [AGENTS.md](./AGENTS.md) — agent 行为约束
+| 文档 | 内容 |
+| --- | --- |
+| [README.md](README.md) | 项目入口、快速开始 |
+| [AGENTS.md](AGENTS.md) | agent 行为约束 |
+| [PROGRESS.md](PROGRESS.md) | 进度快照与变更记录 |
+| [ACCEPTANCE.md](ACCEPTANCE.md) | 验收清单 |
+| [MIGRATION.md](MIGRATION.md) | 迁移计划与阶段 |
+| [PORT-NOTES.md](PORT-NOTES.md) | 偏差、决策与踩坑 |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | 构建、配置、部署与升级 |
+| [DB-MATRIX.md](DB-MATRIX.md) | 数据库矩阵 |
 
 ## 硬约束
 
