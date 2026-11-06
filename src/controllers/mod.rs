@@ -12,6 +12,7 @@ pub mod player;
 pub mod report;
 pub mod setup;
 pub mod skinlib;
+pub mod spa;
 pub mod texture;
 pub mod user;
 pub mod user_page;

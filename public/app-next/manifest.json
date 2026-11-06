@@ -1,0 +1,19 @@
+{
+  "frontendVersion": "0.1.0",
+  "contractVersion": 1,
+  "builtAt": "2026-11-06T16:04:38Z",
+  "apps": {
+    "site": {
+      "entry": "/app-next/site/assets/index-B8SdtBGx.js",
+      "css": [
+        "/app-next/site/assets/index-D0KmhDdQ.css"
+      ]
+    },
+    "admin": {
+      "entry": "/app-next/admin/assets/index-BrrMGluX.js",
+      "css": [
+        "/app-next/admin/assets/index-DglVuUfI.css"
+      ]
+    }
+  }
+}

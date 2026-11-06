@@ -5,6 +5,12 @@ use crate::controllers;
 routes! {
     get!("/__neoskin/health", controllers::health::index).name("health"),
 
+    // SPA 壳与契约 v1 bootstrap（NeoSkinFrontend）
+    get!("/api/bootstrap", controllers::spa::bootstrap).name("api.bootstrap"),
+    get!("/app-next/{mode}", controllers::spa::shell).name("app-next.shell"),
+    get!("/app-next/{mode}/", controllers::spa::shell).name("app-next.shell.index"),
+    get!("/app-next/{mode}/{*path}", controllers::spa::shell).name("app-next.shell.path"),
+
     // 认证
     post!("/auth/login", controllers::auth::login).name("auth.login"),
     post!("/auth/register", controllers::auth::register).name("auth.register"),

@@ -341,3 +341,14 @@
 6. 端口偏差登记到 `PORT-NOTES.md`，并更新 `AGENTS.md` 的数据库范围/插件范围。
 7. **Rust 完成后**执行根目录 `CROSS-PROJECT-SYNC.md`：同步 Go/Rust/.NET/Spring
    四个项目的状态、文档与实现覆盖度（2026-11-05 已完成一次审计，见该文件 §7）。
+
+---
+
+## 8. 共享前端 P1（2026-11-06）
+
+- 新增 `GET /api/bootstrap`（契约 v1）与 SPA 壳 `GET /app-next/{site,admin}`、`/app-next/{site,admin}/`、`/app-next/{site,admin}/{*path}`。
+- 壳注入 `<meta name="csrf-token">`、`<meta name="neoskin-mode">` 与 `#neoskin-bootstrap`；`</script>` / `<` / `>` / `&` 已转义。
+- 静态资源命中 `public/app-next/{mode}` 时设置一年 immutable 缓存；缺失的带扩展名文件返回 404。
+- 实现：`src/controllers/spa.rs`、`src/routes.rs`、`src/controllers/mod.rs`。
+- 构建产物已发布到 `public/app-next/{site,admin}`（含 `manifest.json`）。
+- 联调验证：登录 → `/app-next/site/user` → `/app-next/admin/` 仪表盘，0 console error。
