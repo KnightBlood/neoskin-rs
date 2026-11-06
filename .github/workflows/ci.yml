@@ -1,4 +1,4 @@
-name: CI — browser E2E
+name: CI
 
 on:
   push:
@@ -6,54 +6,147 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_VERSION: "1.94.0"
+  NODE_VERSION: "24"
+  FRONTEND_URL: "https://github.com/DreamCraft-Tech/blessing-skin-server-patch/releases/download/v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
+  FRONTEND_SHA256: "bb94f83718f3fca3737a04b2097e747720ebd5966979cf042dbbba5434da3e73"
+
 jobs:
+  test:
+    name: Format, clippy & test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --lib --tests
+
+  db-matrix:
+    name: DB matrix (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mysql
+            image: mysql:8.4
+            port: 3306
+            username: blessing
+            password: "123456"
+            health: "mysqladmin ping -h localhost -uroot -proot"
+          - db: mariadb
+            image: mariadb:11.8
+            port: 3306
+            username: blessing
+            password: "123456"
+            health: "healthcheck.sh --connect --innodb_initialized"
+          - db: pgsql
+            image: postgres:18
+            port: 5432
+            username: postgres
+            password: "123456"
+            health: "pg_isready -U postgres"
+    services:
+      database:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: blessing_skin
+          MYSQL_USER: blessing
+          MYSQL_PASSWORD: "123456"
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: blessing_skin
+          MARIADB_USER: blessing
+          MARIADB_PASSWORD: "123456"
+          POSTGRES_PASSWORD: "123456"
+          POSTGRES_DB: blessing_skin
+        ports:
+          - ${{ matrix.port }}:${{ matrix.port }}
+        options: >-
+          --health-cmd "${{ matrix.health }}"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+    env:
+      DB_CONNECTION: ${{ matrix.db }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: ${{ matrix.port }}
+      DB_DATABASE: blessing_skin
+      DB_USERNAME: ${{ matrix.username }}
+      DB_PASSWORD: ${{ matrix.password }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --test db_matrix -- --nocapture
+
   browser-e2e:
     name: Browser E2E (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v7
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.94.0
-
+          toolchain: ${{ env.RUST_VERSION }}
       - name: Install system deps
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev unzip
-
-      - uses: actions/setup-node@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
-
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tests/browser/package-lock.json
       - name: Install browser test deps
         run: npm ci --prefix tests/browser
-
       - name: Fetch legacy frontend assets
         run: |
           set -euo pipefail
-          curl -sSLo /tmp/bs.zip \
-            "https://github.com/DreamCraft-Tech/blessing-skin-server-patch/releases/download/v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
-          echo "bb94f83718f3fca3737a04b2097e747720ebd5966979cf042dbbba5434da3e73  /tmp/bs.zip" | sha256sum -c -
+          curl -sSLo /tmp/bs.zip "$FRONTEND_URL"
+          echo "$FRONTEND_SHA256  /tmp/bs.zip" | sha256sum -c -
           unzip -q /tmp/bs.zip -d /tmp/bs
           mkdir -p public
           rm -rf public/app
           cp -r /tmp/bs/public/app public/app
-
       - name: Setup Chrome
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-
       - name: Export Chrome path
         run: echo "NEOSKIN_CHROME_PATH=${{ steps.chrome.outputs.chrome-path }}" >> "$GITHUB_ENV"
-
       - name: Build
         run: cargo build --tests
-
       - name: Browser E2E
         env:
           NEOSKIN_BROWSER_E2E: "1"
