@@ -508,9 +508,13 @@ pub async fn store(request: Request) -> Response {
         Ok(admin) => admin,
         Err(response) => return response,
     };
+    let wants_json = wants_json(&request);
     let body: Value = request.input().await?;
     let data = parse_content(&body).await?;
     let saved = save(&data, None, admin.uid as i32).await?;
+    if wants_json {
+        return Ok(saved_json(&saved));
+    }
     let location = if saved.kind == KIND_ANNOUNCEMENT {
         "/admin/communications?announcement=1".to_string()
     } else {
@@ -538,6 +542,7 @@ pub async fn update(request: Request) -> Response {
     let Some(existing) = Communication::find(id).await? else {
         return Ok(HttpResponse::text("Not Found").status(404));
     };
+    let wants_json = wants_json(&request);
     let body: Value = request.input().await?;
     let mut data = parse_content(&body).await?;
     // 已发布内容的受众保持原样（PHP `CommunicationsController@update`）。
@@ -551,6 +556,9 @@ pub async fn update(request: Request) -> Response {
         object.insert("audience".to_string(), audience);
     }
     let saved = save(&data, Some(existing), admin.uid as i32).await?;
+    if wants_json {
+        return Ok(saved_json(&saved));
+    }
     let location = if saved.kind == KIND_ANNOUNCEMENT {
         "/admin/communications?announcement=1".to_string()
     } else {
@@ -605,9 +613,116 @@ pub async fn withdraw(request: Request) -> Response {
         }
     }
 
+    if wants_json(&request) {
+        return Ok(crate::support::api::success("内容已撤回。", None));
+    }
+
     Ok(HttpResponse::text("")
         .status(302)
         .header("Location", "/admin/communications"))
+}
+
+/// GET /api/admin/communications —— 通信/公告分页（管理端 SPA）。
+#[handler]
+pub async fn admin_index(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return response;
+    }
+    let page = request
+        .query_param("page")
+        .and_then(|value| value.parse::<i64>().ok())
+        .unwrap_or(1)
+        .max(1);
+    let per_page = 15i64;
+
+    let mut rows = Communication::all().await?.into_vec();
+    rows.sort_by(|left, right| right.updated_at.cmp(&left.updated_at));
+    let total = rows.len() as i64;
+    let last_page = ((total + per_page - 1) / per_page).max(1);
+    let page = page.min(last_page);
+    let offset = ((page - 1) * per_page) as usize;
+
+    let items: Vec<Value> = rows
+        .iter()
+        .skip(offset)
+        .take(per_page as usize)
+        .map(|row| {
+            json!({
+                "id": row.id,
+                "title": row.title,
+                "kind": row.kind,
+                "status": row.status,
+                "read_count": 0,
+                "delivery_count": 0,
+                "updated_at": row.updated_at.map(|value| value.format("%Y-%m-%d %H:%M:%S").to_string()),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::json(json!({
+        "data": items,
+        "current_page": page,
+        "last_page": last_page,
+        "per_page": per_page,
+        "total": total,
+    })))
+}
+
+/// GET /api/admin/communications/{communication} —— 编辑器初始数据。
+#[handler]
+pub async fn admin_editor(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return response;
+    }
+    let Some(id) = request
+        .param("communication")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+    else {
+        return Ok(crate::support::api::not_found());
+    };
+    let Some(row) = Communication::find(id).await? else {
+        return Ok(crate::support::api::not_found());
+    };
+
+    let blocks: Value = row
+        .blocks
+        .as_deref()
+        .and_then(|raw| serde_json::from_str(raw).ok())
+        .unwrap_or_else(|| json!([]));
+    let audience: Value = row
+        .audience
+        .as_deref()
+        .and_then(|raw| serde_json::from_str(raw).ok())
+        .unwrap_or_else(|| json!({"receiver": "all"}));
+
+    Ok(HttpResponse::json(json!({
+        "id": row.id,
+        "title": row.title,
+        "kind": row.kind,
+        "status": row.status,
+        "locale": row.locale,
+        "editor": if row.editor.is_empty() { EDITOR_BLOCKS } else { row.editor.as_str() },
+        "source": row.source.unwrap_or_default(),
+        "blocks": blocks,
+        "audience": audience,
+    })))
+}
+
+fn wants_json(request: &Request) -> bool {
+    request.header("x-neoskin-spa").is_some()
+}
+
+fn saved_json(saved: &Communication) -> HttpResponse {
+    let message = if saved.status == STATUS_PUBLISHED {
+        "内容已发布。"
+    } else {
+        "内容已保存。"
+    };
+    crate::support::api::success(
+        message,
+        Some(json!({"id": saved.id, "status": saved.status})),
+    )
 }
 
 /// POST /admin/communications/import

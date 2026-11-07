@@ -184,6 +184,8 @@ routes! {
     // 通信管理（PHP：CommunicationsController）
     post!("/admin/communications/preview", controllers::communication::preview).name("admin.communications.preview"),
     post!("/admin/communications/import", controllers::communication::import).name("admin.communications.import"),
+    get!("/api/admin/communications", controllers::communication::admin_index).name("api.admin.communications"),
+    get!("/api/admin/communications/{communication}", controllers::communication::admin_editor).name("api.admin.communications.show"),
     post!("/admin/communications", controllers::communication::store).name("admin.communications.store"),
     put!("/admin/communications/{communication}", controllers::communication::update).name("admin.communications.update"),
     // HTML 表单没有方法伪造，编辑表单直接 POST。
