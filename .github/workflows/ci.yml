@@ -49,7 +49,9 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-latest, arch: x64, features: "" }
-          - { os: ubuntu-24.04-arm, arch: arm64, features: "" }
+          # ubuntu-24.04-arm 的 target 缓存已连续三次在同一编译步骤被回收，
+          # 用独立 key 强制一次干净构建，排除缓存损坏。
+          - { os: ubuntu-24.04-arm, arch: arm64, features: "", cache_key: "arm64-v2" }
           - { os: windows-latest, arch: x64, features: "vendored-openssl" }
           - { os: windows-11-arm, arch: arm64, features: "vendored-openssl" }
           - { os: macos-15-intel, arch: x64, features: "" }
@@ -74,6 +76,8 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install nasm -y --no-progress
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.cache_key }}
       - name: Test (system OpenSSL)
         if: matrix.features == ''
         run: cargo test --lib --tests
