@@ -431,3 +431,5 @@
 
 
 - `POST /admin/i18n` 增加 JSON 响应分支（`Accept: application/json` → `{code,message}`；否则 302），供管理端 SPA 使用。
+
+- 新增 `GET|PUT /api/admin/options/{group}`（`options|customize|score|resource`）：返回/保存站点配置、配色、积分、资源选项，供管理端 SPA 使用；布尔项统一 `"true"/"false"`。
