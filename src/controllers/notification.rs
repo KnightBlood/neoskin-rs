@@ -8,7 +8,7 @@
 
 use chrono::Utc;
 use serde_json::{Value, json};
-use suprnova::{FrameworkError, HttpResponse, Model, Request, Response, handler};
+use suprnova::{DB, FrameworkError, HttpResponse, Model, Request, Response, handler};
 
 use crate::models::communication::Communication;
 use crate::models::notification::Entity as Notification;
@@ -86,7 +86,178 @@ pub async fn all(request: Request) -> Response {
     Ok(HttpResponse::json(json!(items)))
 }
 
-/// POST /api/user/notifications/{id} —— 读取并标记已读。
+/// GET /api/user/inbox —— 站内信分页（新增契约端点）。
+#[handler]
+pub async fn inbox(request: Request) -> Response {
+    let user = match require_user(&request).await {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
+    let page: i64 = request
+        .query_param("page")
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(1)
+        .max(1);
+    let per_page: i64 = request
+        .query_param("per_page")
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(10)
+        .clamp(1, 100);
+
+    use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+    let connection = DB::connection()?;
+    let rows = Notification::find()
+        .filter(crate::models::notification::Column::NotifiableType.eq("App\\Models\\User"))
+        .filter(
+            crate::models::notification::Column::NotifiableId
+                .eq(suprnova::eloquent::StoredU64::from(user.uid)),
+        )
+        .all(connection.inner())
+        .await
+        .map_err(|error| FrameworkError::database(error.to_string()))?;
+
+    let mut visible_rows = Vec::new();
+    for row in rows {
+        let data = parse_data(&row.data);
+        if visible(&data).await? {
+            visible_rows.push((row, data));
+        }
+    }
+    visible_rows.sort_by(|left, right| right.0.created_at.cmp(&left.0.created_at));
+
+    let total = visible_rows.len() as i64;
+    let unread = visible_rows
+        .iter()
+        .filter(|(row, _)| row.read_at.is_none())
+        .count() as i64;
+    let last_page = ((total + per_page - 1) / per_page).max(1);
+    let page = page.min(last_page);
+    let offset = ((page - 1) * per_page) as usize;
+
+    let mut items = Vec::new();
+    for (row, data) in visible_rows.iter().skip(offset).take(per_page as usize) {
+        let content = content_of(data).await?;
+        items.push(json!({
+            "id": row.id,
+            "title": title_of(data).await?,
+            "preview": preview(&content, 120),
+            "format": data.get("format").and_then(Value::as_str).unwrap_or("html"),
+            "read_at": row.read_at.map(format_time),
+            "created_at": row.created_at.map(format_time),
+            "communication_id": data.get("communication_id").cloned().unwrap_or(Value::Null),
+        }));
+    }
+
+    Ok(HttpResponse::json(json!({
+        "data": items,
+        "current_page": page,
+        "last_page": last_page,
+        "per_page": per_page,
+        "total": total,
+        "unread": unread,
+    })))
+}
+
+/// GET /api/user/inbox/{id} —— 站内信详情（自动已读，新增契约端点）。
+#[handler]
+pub async fn message(request: Request) -> Response {
+    let user = match require_user(&request).await {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
+    let id = request.param("id").unwrap_or_default().to_string();
+
+    use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+    let connection = DB::connection()?;
+    let row = Notification::find()
+        .filter(crate::models::notification::Column::Id.eq(id.clone()))
+        .filter(crate::models::notification::Column::NotifiableType.eq("App\\Models\\User"))
+        .filter(
+            crate::models::notification::Column::NotifiableId
+                .eq(suprnova::eloquent::StoredU64::from(user.uid)),
+        )
+        .one(connection.inner())
+        .await
+        .map_err(|error| FrameworkError::database(error.to_string()))?;
+    let Some(row) = row else {
+        return Ok(crate::support::api::not_found());
+    };
+    let data = parse_data(&row.data);
+    if !visible(&data).await? {
+        return Ok(crate::support::api::not_found());
+    }
+
+    let read_at = match row.read_at {
+        Some(value) => value,
+        None => {
+            let now = Utc::now().naive_utc();
+            Notification::update_many()
+                .col_expr(
+                    crate::models::notification::Column::ReadAt,
+                    sea_orm::sea_query::Expr::value(Some(now)),
+                )
+                .filter(crate::models::notification::Column::Id.eq(id))
+                .exec(connection.inner())
+                .await
+                .map_err(|error| FrameworkError::database(error.to_string()))?;
+            now
+        }
+    };
+
+    Ok(crate::support::api::success("", Some(json!({
+        "id": row.id,
+        "title": title_of(&data).await?,
+        "content": content_of(&data).await?,
+        "format": data.get("format").and_then(Value::as_str).unwrap_or("html"),
+        "read_at": format_time(read_at),
+        "created_at": row.created_at.map(format_time),
+        "communication_id": data.get("communication_id").cloned().unwrap_or(Value::Null),
+    }))))
+}
+
+/// 与 `Communications::content($notification)` 对齐。
+async fn content_of(data: &Value) -> Result<String, FrameworkError> {
+    if let Some(communication_id) = data.get("communication_id").and_then(Value::as_u64) {
+        return Ok(match Communication::find(communication_id).await? {
+            Some(communication) => render_communication(&communication),
+            None => String::new(),
+        });
+    }
+    Ok(markdown(
+        data.get("content").and_then(Value::as_str).unwrap_or(""),
+    ))
+}
+
+fn format_time(value: chrono::NaiveDateTime) -> String {
+    value.format("%Y-%m-%d %H:%M:%S").to_string()
+}
+
+/// 纯文本预览（最多 `limit` 个字符）。
+fn preview(content: &str, limit: usize) -> String {
+    let mut plain = String::with_capacity(content.len());
+    let mut in_tag = false;
+    for ch in content.chars() {
+        match ch {
+            '<' => in_tag = true,
+            '>' => {
+                in_tag = false;
+                plain.push(' ');
+            }
+            _ if !in_tag => plain.push(ch),
+            _ => {}
+        }
+    }
+    let plain = plain
+        .replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'");
+    let plain = plain.split_whitespace().collect::<Vec<_>>().join(" ");
+    plain.chars().take(limit).collect()
+}
+
 #[handler]
 pub async fn read(request: Request) -> Response {
     if let Err(response) =

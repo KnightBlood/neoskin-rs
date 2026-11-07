@@ -37,8 +37,11 @@ routes! {
     get!("/user/closet", controllers::user_page::closet).name("user.closet.view"),
     get!("/user/profile", controllers::user_page::profile).name("user.profile.view"),
     get!("/user/reports", controllers::user_page::reports).name("user.reports.view"),
+    get!("/api/user/reports", controllers::report::track).name("api.user.reports"),
     get!("/user/inbox", controllers::communication::inbox).name("user.inbox"),
     get!("/user/inbox/{id}", controllers::communication::message).name("user.inbox.message"),
+    get!("/api/user/inbox", controllers::notification::inbox).name("api.user.inbox"),
+    get!("/api/user/inbox/{id}", controllers::notification::message).name("api.user.inbox.message"),
     get!("/user/oauth/manage", controllers::user_page::oauth).name("user.oauth.manage"),
 
     // 当前用户（PHP：GET /api/user）

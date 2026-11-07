@@ -79,6 +79,62 @@ pub async fn submit(request: Request) -> Response {
     Ok(failure("举报已提交，请等待管理员处理", 0))
 }
 
+/// GET /api/user/reports —— 我的举报分页（新增契约端点）。
+#[handler]
+pub async fn track(request: Request) -> Response {
+    let user = match require_user(&request).await {
+        Ok(user) => user,
+        Err(response) => return Ok(response),
+    };
+    let page: i64 = request
+        .query_param("page")
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(1)
+        .max(1);
+    let per_page: i64 = request
+        .query_param("per_page")
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(10)
+        .clamp(1, 100);
+
+    let mut reports: Vec<Report> = Report::filter("reporter", user.uid)
+        .get()
+        .await?
+        .into_vec();
+    reports.sort_by(|left, right| right.report_at.cmp(&left.report_at));
+
+    let total = reports.len() as i64;
+    let last_page = ((total + per_page - 1) / per_page).max(1);
+    let page = page.min(last_page);
+    let offset = ((page - 1) * per_page) as usize;
+
+    let connection = DB::connection()?;
+    let mut items = Vec::new();
+    for report in reports.iter().skip(offset).take(per_page as usize) {
+        let texture = Texture::find()
+            .filter(TextureColumn::Tid.eq(report.tid as u32))
+            .one(connection.inner())
+            .await
+            .map_err(|error| FrameworkError::database(error.to_string()))?;
+        items.push(json!({
+            "id": report.id,
+            "tid": report.tid,
+            "texture_name": texture.map(|texture| texture.name).unwrap_or_default(),
+            "reason": report.reason,
+            "status": report.status,
+            "report_at": report.report_at.format("%Y-%m-%d %H:%M:%S").to_string(),
+        }));
+    }
+
+    Ok(HttpResponse::json(json!({
+        "data": items,
+        "current_page": page,
+        "last_page": last_page,
+        "per_page": per_page,
+        "total": total,
+    })))
+}
+
 async fn admin(request: &Request) -> Result<User, Response> {
     let user = match require_user(request).await {
         Ok(user) => user,

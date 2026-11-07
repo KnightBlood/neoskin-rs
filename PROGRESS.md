@@ -352,3 +352,15 @@
 - 实现：`src/controllers/spa.rs`、`src/routes.rs`、`src/controllers/mod.rs`。
 - 构建产物已发布到 `public/app-next/{site,admin}`（含 `manifest.json`）。
 - 联调验证：登录 → `/app-next/site/user` → `/app-next/admin/` 仪表盘，0 console error。
+
+---
+
+## 9. 共享前端 P3（2026-11-07）
+
+- 新增用户中心契约端点（与既有 `/user/inbox` 页面端点并存）：
+  - `GET /api/user/inbox?page=&per_page=`：分页 + `unread`，条目含 `preview`/`format`/`communication_id`；
+  - `GET /api/user/inbox/{id}`：`{code,data}`，自动已读；
+  - `GET /api/user/reports?page=&per_page=`：举报分页，含 `texture_name`。
+- 实现：`src/controllers/notification.rs`（`inbox`/`message`/内容渲染与预览清洗）、
+  `src/controllers/report.rs`（`track`）、`src/routes.rs`。
+- 验证：`cargo check` 通过；`cargo test` 全绿（含 doctest）；CI 验证待推送。
