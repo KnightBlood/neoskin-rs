@@ -191,6 +191,7 @@ routes! {
     post!("/admin/communications/{communication}/withdraw", controllers::communication::withdraw).name("admin.communications.withdraw"),
 
     // API：后台别名
+    get!("/api/admin/dashboard", controllers::admin::dashboard).name("api.admin.dashboard"),
     get!("/api/admin/users", controllers::admin::users_list).name("api.admin.users"),
     put!("/api/admin/users/{user}/email", controllers::admin::user_email).name("api.admin.users.email"),
     put!("/api/admin/users/{user}/verification", controllers::admin::user_verification).name("api.admin.users.verification"),

@@ -364,3 +364,8 @@
 - 实现：`src/controllers/notification.rs`（`inbox`/`message`/内容渲染与预览清洗）、
   `src/controllers/report.rs`（`track`）、`src/routes.rs`。
 - 验证：`cargo check` 通过；`cargo test` 全绿（含 doctest）；CI 验证待推送。
+
+### 2026-11-07（P4 增量）
+- 新增 `GET /api/admin/dashboard`：用户/角色/材质数量与存储空间。
+- 实现：`src/controllers/admin.rs`（`dashboard`）、`src/routes.rs`。
+- 验证：`cargo check` 通过；`cargo test` 全绿（含 doctest）。

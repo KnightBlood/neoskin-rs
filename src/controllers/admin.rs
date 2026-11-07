@@ -38,6 +38,37 @@ async fn require_admin(request: &Request) -> Result<User, Response> {
     Ok(user)
 }
 
+/// GET /api/admin/dashboard —— 管理端统计（共享前端 P4）。
+#[handler]
+pub async fn dashboard(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return response;
+    }
+
+    let user_count = User::all().await?.into_vec().len() as i64;
+    let player_count = Player::all().await?.into_vec().len() as i64;
+    let connection = DB::connection()?;
+    let textures = Texture::find()
+        .all(connection.inner())
+        .await
+        .map_err(|error| FrameworkError::database(error.to_string()))?;
+    let texture_count = textures.len() as i64;
+    let storage: i64 = textures.iter().map(|texture| texture.size as i64).sum();
+    let storage_human = if storage > 1024 {
+        format!("{:.1}MB", storage as f64 / 1024.0)
+    } else {
+        format!("{storage}KB")
+    };
+
+    Ok(HttpResponse::json(json!({
+        "users": user_count,
+        "players": player_count,
+        "textures": texture_count,
+        "storage": storage,
+        "storageHuman": storage_human,
+    })))
+}
+
 /// 供页面控制器复用（`admin.users` 的 `extra.currentUser`）。
 pub(crate) fn user_json_public(user: &User) -> Value {
     user_json(user)
