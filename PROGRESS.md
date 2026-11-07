@@ -369,3 +369,5 @@
 - 新增 `GET /api/admin/dashboard`：用户/角色/材质数量与存储空间。
 - 实现：`src/controllers/admin.rs`（`dashboard`）、`src/routes.rs`。
 - 验证：`cargo check` 通过；`cargo test` 全绿（含 doctest）。
+
+- `POST /admin/i18n`：当 `Accept: application/json` 时返回 `{code:0,message}`（共享前端直接调用），否则保持原 302 跳转。

@@ -1090,6 +1090,10 @@ pub async fn translation_create(request: Request) -> Response {
         return response;
     }
     let locale = current_locale(&request);
+    let wants_json = request
+        .header("accept")
+        .map(|value| value.to_ascii_lowercase().contains("application/json"))
+        .unwrap_or(false);
     let body: TranslationCreateRequest = request.input().await?;
     if body.group.trim().is_empty() {
         return Err(validation_error("group", "分组 不能为空。").into());
@@ -1100,7 +1104,7 @@ pub async fn translation_create(request: Request) -> Response {
     if body.text.is_empty() {
         return Err(validation_error("text", "文本 不能为空。").into());
     }
-    let text = json!({ locale: body.text }).to_string();
+    let text = json!({ locale.clone(): body.text }).to_string();
     let now = Utc::now();
     LanguageLine::create(attrs! {
         group: body.group,
@@ -1111,6 +1115,10 @@ pub async fn translation_create(request: Request) -> Response {
     })
     .await?;
     let _ = crate::support::lang::generate().await;
+    if wants_json {
+        let message = crate::support::i18n::translate(&locale, "admin.i18n.added", None);
+        return Ok(crate::support::api::success(message, None));
+    }
     Ok(HttpResponse::text("")
         .status(302)
         .header("Location", "/admin/i18n"))
