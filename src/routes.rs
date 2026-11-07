@@ -129,6 +129,7 @@ routes! {
     get!("/admin/status", controllers::admin_page::status).name("admin.status"),
     get!("/admin/communications", controllers::admin_page::communications).name("admin.communications.index"),
     get!("/admin/update", controllers::admin_page::update_page).name("admin.update.view"),
+    get!("/api/admin/update/info", controllers::admin_page::update_info).name("api.admin.update.info"),
     get!("/admin/plugins/manage", controllers::admin_page::plugins_page).name("admin.plugins.view"),
     post!("/admin/plugins/manage", controllers::admin_page::plugins_manage).name("admin.plugins.manage"),
     get!("/admin/plugins/market", controllers::admin_page::market_page).name("admin.plugins.market.view"),

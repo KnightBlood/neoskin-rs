@@ -1117,6 +1117,36 @@ pub async fn update_page(request: Request) -> Response {
     Ok(view::render("admin/update.html", context))
 }
 
+/// GET /api/admin/update/info —— 更新信息 JSON（管理端 SPA）。
+#[handler]
+pub async fn update_info(request: Request) -> Response {
+    if let Err(response) = require_admin(&request).await {
+        return Ok(response);
+    }
+    let check = crate::support::update::check().await?;
+    let pending = crate::support::update::pending()
+        .and_then(|pending| serde_json::to_value(pending).ok())
+        .unwrap_or(Value::Null);
+    let latest = check
+        .info
+        .get("latest")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    Ok(HttpResponse::json(json!({
+        "latest": latest,
+        "current": crate::controllers::home::VERSION,
+        "error": check.error,
+        "can_update": check.can_update,
+        "package": pending,
+        "notice": "",
+        "upload_limits": {
+            "application": "256 MB",
+            "upload": "256 MB",
+        },
+    })))
+}
+
 /// GET /admin/plugins/manage
 #[handler]
 pub async fn plugins_page(request: Request) -> Response {
