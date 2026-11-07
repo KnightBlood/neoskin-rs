@@ -48,14 +48,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, arch: x64, features: "" }
-          # ubuntu-24.04-arm 的 target 缓存已连续三次在同一编译步骤被回收，
-          # 用独立 key 强制一次干净构建，排除缓存损坏。
-          - { os: ubuntu-24.04-arm, arch: arm64, features: "", cache_key: "arm64-v2" }
-          - { os: windows-latest, arch: x64, features: "vendored-openssl" }
-          - { os: windows-11-arm, arch: arm64, features: "vendored-openssl" }
-          - { os: macos-15-intel, arch: x64, features: "" }
-          - { os: macos-latest, arch: arm64, features: "" }
+          - { os: ubuntu-latest, arch: x64, features: "", test_debug: "2" }
+          # ARM runner 在编译本 crate 时多次被回收（疑似内存压力）。
+          # 关闭 test 二进制的 debug info，显著降低 codegen/链接内存。
+          - { os: ubuntu-24.04-arm, arch: arm64, features: "", cache_key: "arm64-v2", test_debug: "0" }
+          - { os: windows-latest, arch: x64, features: "vendored-openssl", test_debug: "2" }
+          - { os: windows-11-arm, arch: arm64, features: "vendored-openssl", test_debug: "2" }
+          - { os: macos-15-intel, arch: x64, features: "", test_debug: "2" }
+          - { os: macos-latest, arch: arm64, features: "", test_debug: "2" }
     steps:
       - uses: actions/checkout@v7
       - name: Install Rust
@@ -78,11 +78,16 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.cache_key }}
+          cache-on-failure: true
       - name: Test (system OpenSSL)
         if: matrix.features == ''
+        env:
+          CARGO_PROFILE_TEST_DEBUG: ${{ matrix.test_debug }}
         run: cargo test --lib --tests
       - name: Test (vendored OpenSSL)
         if: matrix.features != ''
+        env:
+          CARGO_PROFILE_TEST_DEBUG: ${{ matrix.test_debug }}
         run: cargo test --lib --tests --features ${{ matrix.features }}
 
   db-matrix:
