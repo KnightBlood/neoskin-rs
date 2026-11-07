@@ -413,3 +413,12 @@
     MySQL 额外验证衣柜 add/rename/remove 与 `textures.likes` 增减。
 
 
+
+## 9. 共享前端新增契约端点（2026-11-07）
+
+- 为共享前端 P3 增加 3 个**站内信/举报 JSON** 端点（PHP 原版只有 HTML 页面）：
+  `GET /api/user/inbox`、`GET /api/user/inbox/{id}`、`GET /api/user/reports`。
+- 这些是 NeoSkinFrontend 契约 v1 的增量端点，不计入 PHP 174 条路由；
+  注册在 `src/routes.rs`，与 `/user/inbox` HTML 页面端点并存。
+- 返回结构与 `NeoSkinFrontend/docs/BACKEND-CONTRACT.md` §7.2 一致；
+  匿名访问返回 `401 application/json`。
