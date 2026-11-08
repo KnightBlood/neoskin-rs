@@ -1,15 +1,15 @@
 {
   "frontendVersion": "0.1.0",
   "contractVersion": 1,
-  "builtAt": "2026-11-08T06:28:21Z",
+  "builtAt": "2026-11-08T07:54:57Z",
   "apps": {
     "site": {
-      "entry": "/app-next/site/assets/index-pnUYroLe.js",
+      "entry": "/app-next/site/assets/index-yb7gu-E6.js",
       "css": [
         "/app-next/site/assets/loading-CS-qlNyt.css",
         "/app-next/site/assets/button-BEWTNnlh.css",
         "/app-next/site/assets/popup-BP1PwShS.css",
-        "/app-next/site/assets/index-FqYHCYVe.css"
+        "/app-next/site/assets/index-BM4ogEXz.css"
       ]
     },
     "admin": {
