@@ -402,3 +402,4 @@
   `/app-next/site/` 仍可访问。
 - 本机启动注意：Suprnova 读取 `SERVER_PORT` / `DATABASE_URL`（不是 `APP_PORT`/`DB_*`），
   需在仓库根目录运行以命中 `public/app-next`；`APP_KEY` 必须是 URL-safe base64、32 字节、无填充。
+- Playwright 浏览器 E2E（`NEOSKIN_BROWSER_E2E=1`）通过。
