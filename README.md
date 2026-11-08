@@ -13,7 +13,7 @@
 - **ORM**：SeaORM
 - **数据库**：SQLite / MySQL / MariaDB / PostgreSQL / SQL Server（与 Laravel 一致）
 - **认证**：Suprnova Auth (sessions, guards, 2FA/TOTP) + OAuth2
-- **前端**：Inertia (Svelte/React/Vue) + Vite 8
+- **前端**：legacy `public/app`（webpack + yarn 1.x）+ NeoSkin 共享前端 `public/app-next`（React 19 / Vite 8，`FRONTEND_MODE=legacy|next`）
 - **图像**：`image` crate
 
 ## 项目结构
