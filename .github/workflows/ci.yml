@@ -16,7 +16,7 @@ concurrency:
 env:
   RUST_VERSION: "1.94.0"
   NODE_VERSION: "24"
-  FRONTEND_URL: "https://github.com/DreamCraft-Tech/blessing-skin-server-patch/releases/download/v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
+  FRONTEND_URL: "https://github.com/KnightBlood/neoskin-frontend/releases/download/legacy-assets-v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
   FRONTEND_SHA256: "bb94f83718f3fca3737a04b2097e747720ebd5966979cf042dbbba5434da3e73"
 
 jobs:
