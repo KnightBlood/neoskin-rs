@@ -89,7 +89,7 @@ jobs:
             cp target/release/neoskin_rs stage/neoskin_rs
           fi
           cp -r resources stage/resources
-          cp -r public/app-next stage/public/app-next
+          cp -r public/. stage/public/
           cp .env.example README.md DEPLOYMENT.md stage/
 
       - name: Package (Windows)

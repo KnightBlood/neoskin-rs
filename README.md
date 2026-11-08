@@ -134,4 +134,4 @@ git push origin v6.0.11
 ```
 
 Release 产物：`neoskin-rs_<version>_<platform>.zip`，包含二进制、
-`resources`、`public/app-next`、`.env.example` 与部署文档。
+`resources`、`public/app`、`public/app-next`、`.env.example` 与部署文档。
