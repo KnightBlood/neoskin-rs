@@ -100,10 +100,7 @@ pub async fn track(request: Request) -> Response {
         .unwrap_or(10)
         .clamp(1, 100);
 
-    let mut reports: Vec<Report> = Report::filter("reporter", user.uid)
-        .get()
-        .await?
-        .into_vec();
+    let mut reports: Vec<Report> = Report::filter("reporter", user.uid).get().await?.into_vec();
     reports.sort_by(|left, right| right.report_at.cmp(&left.report_at));
 
     let total = reports.len() as i64;

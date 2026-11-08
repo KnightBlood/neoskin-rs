@@ -11,10 +11,7 @@ use crate::models::option::OptionItem;
 pub const DEFAULTS: &[(&str, &str)] = &[
     ("site_url", ""),
     ("site_name", "NeoSkin"),
-    (
-        "site_description",
-        "NeoSkin Minecraft Skin Hosting Service",
-    ),
+    ("site_description", "NeoSkin Minecraft Skin Hosting Service"),
     ("register_with_player_name", "true"),
     ("require_verification", "false"),
     ("regs_per_ip", "3"),

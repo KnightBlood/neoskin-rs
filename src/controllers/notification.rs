@@ -204,15 +204,18 @@ pub async fn message(request: Request) -> Response {
         }
     };
 
-    Ok(crate::support::api::success("", Some(json!({
-        "id": row.id,
-        "title": title_of(&data).await?,
-        "content": content_of(&data).await?,
-        "format": data.get("format").and_then(Value::as_str).unwrap_or("html"),
-        "read_at": format_time(read_at),
-        "created_at": row.created_at.map(format_time),
-        "communication_id": data.get("communication_id").cloned().unwrap_or(Value::Null),
-    }))))
+    Ok(crate::support::api::success(
+        "",
+        Some(json!({
+            "id": row.id,
+            "title": title_of(&data).await?,
+            "content": content_of(&data).await?,
+            "format": data.get("format").and_then(Value::as_str).unwrap_or("html"),
+            "read_at": format_time(read_at),
+            "created_at": row.created_at.map(format_time),
+            "communication_id": data.get("communication_id").cloned().unwrap_or(Value::Null),
+        })),
+    ))
 }
 
 /// 与 `Communications::content($notification)` 对齐。

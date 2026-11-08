@@ -39,40 +39,100 @@ async fn require_admin(request: &Request) -> Result<User, Response> {
 }
 
 const OPTION_GROUP_KEYS: &[(&str, &[&str])] = &[
-    ("options", &[
-        "site_name", "site_description", "site_url", "register_with_player_name",
-        "require_verification", "regs_per_ip", "max_upload_file_size", "max_texture_width",
-        "player_name_rule", "custom_player_name_regexp", "player_name_length_min",
-        "player_name_length_max", "auto_del_invalid_texture", "allow_downloading_texture",
-        "status_code_for_private", "texture_name_regexp", "content_policy",
-        "meta_keywords", "meta_description", "meta_extras", "recaptcha_sitekey",
-        "recaptcha_secretkey", "recaptcha_invisible", "update_source",
-        "plugin_market_source",
-    ]),
-    ("customize", &[
-        "home_pic_url", "favicon_url", "transparent_navbar", "hide_intro", "fixed_bg",
-        "copyright_prefer", "copyright_text", "custom_css", "custom_js",
-        "navbar_color", "sidebar_color",
-    ]),
-    ("score", &[
-        "score_per_storage", "private_score_per_storage", "score_per_closet_item",
-        "return_score", "score_per_player", "user_initial_score",
-        "reporter_score_modification", "reporter_reward_score", "sign_gap_time",
-        "sign_after_zero", "score_award_per_texture", "take_back_scores_after_deletion",
-        "score_award_per_like",
-    ]),
-    ("resource", &[
-        "force_ssl", "auto_detect_asset_url", "cdn_address", "cache_expire_time",
-        "enable_avatar_cache", "enable_preview_cache", "allow_downloading_texture",
-    ]),
+    (
+        "options",
+        &[
+            "site_name",
+            "site_description",
+            "site_url",
+            "register_with_player_name",
+            "require_verification",
+            "regs_per_ip",
+            "max_upload_file_size",
+            "max_texture_width",
+            "player_name_rule",
+            "custom_player_name_regexp",
+            "player_name_length_min",
+            "player_name_length_max",
+            "auto_del_invalid_texture",
+            "allow_downloading_texture",
+            "status_code_for_private",
+            "texture_name_regexp",
+            "content_policy",
+            "meta_keywords",
+            "meta_description",
+            "meta_extras",
+            "recaptcha_sitekey",
+            "recaptcha_secretkey",
+            "recaptcha_invisible",
+            "update_source",
+            "plugin_market_source",
+        ],
+    ),
+    (
+        "customize",
+        &[
+            "home_pic_url",
+            "favicon_url",
+            "transparent_navbar",
+            "hide_intro",
+            "fixed_bg",
+            "copyright_prefer",
+            "copyright_text",
+            "custom_css",
+            "custom_js",
+            "navbar_color",
+            "sidebar_color",
+        ],
+    ),
+    (
+        "score",
+        &[
+            "score_per_storage",
+            "private_score_per_storage",
+            "score_per_closet_item",
+            "return_score",
+            "score_per_player",
+            "user_initial_score",
+            "reporter_score_modification",
+            "reporter_reward_score",
+            "sign_gap_time",
+            "sign_after_zero",
+            "score_award_per_texture",
+            "take_back_scores_after_deletion",
+            "score_award_per_like",
+        ],
+    ),
+    (
+        "resource",
+        &[
+            "force_ssl",
+            "auto_detect_asset_url",
+            "cdn_address",
+            "cache_expire_time",
+            "enable_avatar_cache",
+            "enable_preview_cache",
+            "allow_downloading_texture",
+        ],
+    ),
 ];
 
 const BOOL_OPTIONS: &[&str] = &[
-    "transparent_navbar", "hide_intro", "fixed_bg", "register_with_player_name",
-    "require_verification", "auto_del_invalid_texture", "allow_downloading_texture",
-    "recaptcha_invisible", "return_score", "sign_after_zero",
-    "take_back_scores_after_deletion", "enable_avatar_cache", "enable_preview_cache",
-    "force_ssl", "auto_detect_asset_url",
+    "transparent_navbar",
+    "hide_intro",
+    "fixed_bg",
+    "register_with_player_name",
+    "require_verification",
+    "auto_del_invalid_texture",
+    "allow_downloading_texture",
+    "recaptcha_invisible",
+    "return_score",
+    "sign_after_zero",
+    "take_back_scores_after_deletion",
+    "enable_avatar_cache",
+    "enable_preview_cache",
+    "force_ssl",
+    "auto_detect_asset_url",
 ];
 
 /// GET /api/admin/options/{group}
@@ -100,10 +160,14 @@ pub async fn options_group(request: Request) -> Response {
     if group == "score" {
         let raw = options::string_or("sign_score", "").await?;
         let parts: Vec<&str> = raw.split(',').collect();
-        values.insert("sign_score_from".into(),
-            Value::String(parts.first().map(|v| v.trim()).unwrap_or("").to_string()));
-        values.insert("sign_score_to".into(),
-            Value::String(parts.get(1).map(|v| v.trim()).unwrap_or("").to_string()));
+        values.insert(
+            "sign_score_from".into(),
+            Value::String(parts.first().map(|v| v.trim()).unwrap_or("").to_string()),
+        );
+        values.insert(
+            "sign_score_to".into(),
+            Value::String(parts.get(1).map(|v| v.trim()).unwrap_or("").to_string()),
+        );
     }
     Ok(HttpResponse::json(Value::Object(values)))
 }
@@ -132,8 +196,14 @@ pub async fn options_group_update(request: Request) -> Response {
     if group == "score"
         && (body.get("sign_score_from").is_some() || body.get("sign_score_to").is_some())
     {
-        let from = body.get("sign_score_from").and_then(Value::as_str).unwrap_or("");
-        let to = body.get("sign_score_to").and_then(Value::as_str).unwrap_or("");
+        let from = body
+            .get("sign_score_from")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        let to = body
+            .get("sign_score_to")
+            .and_then(Value::as_str)
+            .unwrap_or("");
         options::set("sign_score", &format!("{from},{to}")).await?;
     }
 
