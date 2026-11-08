@@ -16,8 +16,7 @@ concurrency:
 env:
   RUST_VERSION: "1.94.0"
   NODE_VERSION: "24"
-  FRONTEND_URL: "https://github.com/KnightBlood/neoskin-frontend/releases/download/legacy-assets-v6.0.10_patch/blessing-skin-server_6.0.10_patch_php85.zip"
-  FRONTEND_SHA256: "bb94f83718f3fca3737a04b2097e747720ebd5966979cf042dbbba5434da3e73"
+  FRONTEND_REF: "v6.0.10_patch"
 
 jobs:
   test:
@@ -179,15 +178,19 @@ jobs:
           cache-dependency-path: tests/browser/package-lock.json
       - name: Install browser test deps
         run: npm ci --prefix tests/browser
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
       - name: Fetch legacy frontend assets
         run: |
           set -euo pipefail
-          curl -fsSLo /tmp/bs.zip --retry 5 --retry-delay 10 --retry-all-errors "$FRONTEND_URL"
-          echo "$FRONTEND_SHA256  /tmp/bs.zip" | sha256sum -c -
-          unzip -q /tmp/bs.zip -d /tmp/bs
+          git clone --depth 1 --branch "$FRONTEND_REF" https://github.com/DreamCraft-Tech/blessing-skin-server-patch.git /tmp/bs-src
+          corepack enable
+          (cd /tmp/bs-src && yarn install --frozen-lockfile && yarn build)
           mkdir -p public
           rm -rf public/app
-          cp -r /tmp/bs/public/app public/app
+          cp -r /tmp/bs-src/public/app public/app
       - name: Setup Chrome
         id: chrome
         uses: browser-actions/setup-chrome@v2
