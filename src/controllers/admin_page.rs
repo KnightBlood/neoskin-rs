@@ -858,7 +858,7 @@ pub async fn status(request: Request) -> Response {
         "pgsql" | "postgres" | "postgresql" => "PostgreSQL",
         other => other,
     };
-    let detail = json!({
+    let mut detail = json!({
         "bs": {
             "version": crate::controllers::home::VERSION,
             "env": std::env::var("APP_ENV").unwrap_or_else(|_| "production".to_string()),
@@ -889,6 +889,10 @@ pub async fn status(request: Request) -> Response {
             "prefix": "",
         },
     });
+    if request.expects_json() {
+        detail["plugins"] = json!([]);
+        return Ok(HttpResponse::json(detail));
+    }
     insert(
         &mut context,
         "grid",

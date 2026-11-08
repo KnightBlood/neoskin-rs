@@ -461,3 +461,9 @@
 - 安装向导与更新提示中的产品名改为 NeoSkin。
 - 保留上游归属与兼容标识：`copyright_prefer` 的 7 条文案、页脚链接、
   `blessing-*` 路由/字段/cookie/模板钩子均不变。
+
+### 管理端运行状态内容协商（2026-11-08）
+
+- `GET /admin/status` 在 `request.expects_json()` 时返回 `{bs,server,db,plugins}` JSON；
+  普通 HTML 请求继续渲染 `admin/status` 模板。
+- 用于共享管理端 SPA 状态页；四端联调时不再只显示 Go 端数据。
