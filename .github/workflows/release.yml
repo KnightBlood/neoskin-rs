@@ -53,7 +53,13 @@ jobs:
 
       - name: Install Windows deps
         if: runner.os == 'Windows'
-        run: choco install nasm -y --no-progress
+        shell: pwsh
+        run: |
+          choco install nasm strawberryperl -y --no-progress
+          $perlBin = 'C:\Strawberry\perl\bin'
+          if (-not (Test-Path $perlBin)) { throw "Strawberry Perl not found at $perlBin" }
+          $perlBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          & "$perlBin\perl.exe" -v
 
       - uses: Swatinem/rust-cache@v2
         with:
