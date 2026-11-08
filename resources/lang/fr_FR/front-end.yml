@@ -72,6 +72,9 @@ skinlib:
     button: Téléverser
     cost: Cela vous coûte environ :score .
     award: Vous serez récompensé de :score score(s) en téléchargeant des textures publiques.
+    title: Ajouter la texture
+    name-rule: Moins de 32 caractères et ne doit pas contenir de caractères spéciaux.
+    repeated: La texture est déjà mis en ligne par quelqu'un d'autre. Vous pouvez l'ajouter directement à votre placard.
   show:
     anonymous: Vous devez vous connecter pour utiliser votre garde-robe
     likes: Personnes qui ont aimé
@@ -260,6 +263,24 @@ general:
     player-name: Nom du joueur
     previews: Aperçu de la texture
     last-modified: Dernière modification
+  login: Se connecter
+  register: S'inscrire maintenant
+  logout: Se déconnecter
+  my-closet: Garde-robe
+  oauth-manage: Applications OAuth2
+  check-update: Recherche de mises à jour
+  dashboard: Tableau de bord
+  i18n: Internationalisation
+  nickname: Pseudonyme
+  player-manage: Joueurs
+  plugin-manage: Plugins
+  plugin-market: Marché des plugins
+  report-manage: Rapports
+  score: Score
+  status: Statut
+  user-manage: Utilisateurs
+  profile: Profil utilisateur
+  my-reports: Rapports
 colors:
   black: Noir
   white: Blanc

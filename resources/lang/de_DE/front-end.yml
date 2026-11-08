@@ -72,6 +72,9 @@ skinlib:
     button: Hochladen
     cost: Dies kostet dich :score Punkte.
     award: You'll be awarded :score score(s) by uploading public texture.
+    title: Textur hochladen
+    name-rule: Weniger als 32 Zeichen und darf keine Sonderzeichen enthalten.
+    repeated: Die Textur wurde bereits von jemand anderem hochgeladen. Du kannst sie direkt zu deinem Kleiderschrank hinzufügen.
   show:
     anonymous: Sie müssen sich anmelden, um den Kleiderschrank zu verwenden
     likes: People who like this
@@ -260,6 +263,24 @@ general:
     player-name: Spielername
     previews: Texturvorschau
     last-modified: Letzte Änderung
+  login: Anmelden
+  register: Registrieren
+  logout: Abmelden
+  my-closet: Closet
+  oauth-manage: OAuth2 Apps
+  check-update: Nach Updates suchen
+  dashboard: Übersicht
+  i18n: Internationalization
+  nickname: Benutzername
+  player-manage: Players
+  plugin-manage: Plugins
+  plugin-market: Plugin Market
+  report-manage: Reports
+  score: Punkte
+  status: Status
+  user-manage: Users
+  profile: Kontoeinstellungen
+  my-reports: Reports
 colors:
   black: Schwarz
   white: Weiß

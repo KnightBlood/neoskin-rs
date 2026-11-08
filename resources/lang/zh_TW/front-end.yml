@@ -72,6 +72,9 @@ skinlib:
     button: 上傳
     cost: 將花費 :score 積分。
     award: 您上傳材質得到 :score 積分獎勵。
+    title: 上載材質
+    name-rule: 少於32個字元，且不包含特殊字元。
+    repeated: 材質已被其他人上載過。您可以直接將其添加到衣櫃。
   show:
     anonymous: 您必須登入以使用衣櫃。
     likes: 收藏的用戶
@@ -260,6 +263,24 @@ general:
     player-name: 角色名
     previews: 材質預覽
     last-modified: 最近一次修改
+  login: 登入
+  register: 立刻註冊
+  logout: 登出
+  my-closet: 皮膚櫃
+  oauth-manage: OAuth2 應用程式
+  check-update: 檢查更新
+  dashboard: 儀錶板
+  i18n: 多語言
+  nickname: 暱稱
+  player-manage: 角色
+  plugin-manage: 擴展軟體
+  plugin-market: 擴展軟體商店
+  report-manage: 舉報
+  score: 積分
+  status: 狀態
+  user-manage: 用戶
+  profile: 個人設定檔
+  my-reports: 舉報
 colors:
   black: 黑色
   white: 白色

@@ -72,6 +72,9 @@ skinlib:
     button: Загрузить
     cost: Это будет стоить вам :score очков.
     award: Загрузив публичную текстуру, вас наградят :score оч.
+    title: Загрузить текстуру
+    name-rule: Менее 32-х символов и не должно содержать специальных символов.
+    repeated: Текстура уже загружена кем-то другим. Вы можете добавить её в свой шкаф напрямую.
   show:
     anonymous: Вы должны войти в систему, чтобы использовать шкафы
     likes: Люди, которым это нравится
@@ -260,6 +263,24 @@ general:
     player-name: Имя игрока
     previews: Предпросмотр текстур
     last-modified: Последнее изменение
+  login: Войти
+  register: Зарегистрироваться
+  logout: Выйти
+  my-closet: Гардероб
+  oauth-manage: OAuth2 приложения
+  check-update: Проверить обновления
+  dashboard: Главная страница
+  i18n: Локализация
+  nickname: Ник
+  player-manage: Игроки
+  plugin-manage: Плагины
+  plugin-market: Магазин плагинов
+  report-manage: Отчёты
+  score: Счёт
+  status: Статус
+  user-manage: Пользователи
+  profile: Профиль
+  my-reports: Отчёты
 colors:
   black: Чёрный
   white: Белый

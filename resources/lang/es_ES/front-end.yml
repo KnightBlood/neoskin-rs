@@ -72,6 +72,9 @@ skinlib:
     button: Subir
     cost: Te cuesta alrededor de :score puntuaciones.
     award: Serás galardonado :punta(s) de puntuación subiendo textura pública.
+    title: Subir textura
+    name-rule: Menos de 32 caracteres y no debe contener ninguno especial.
+    repeated: La textura ya está cargada por otra persona. Puede añadirla a su armario directamente.
   show:
     anonymous: Debe iniciar sesión para usar armarios
     likes: Gente a la que le gusta esto
@@ -260,6 +263,24 @@ general:
     player-name: Nombre del jugador
     previews: Preestrenos de textura
     last-modified: Últim actualiz
+  login: Iniciar sesión
+  register: Crear cuenta
+  logout: Cerrar sesión
+  my-closet: Armario
+  oauth-manage: Aplicaciones OAuth2
+  check-update: Comprobar actualización
+  dashboard: Cuadro de mandos
+  i18n: Internacionalización
+  nickname: Apodo
+  player-manage: Jugadores
+  plugin-manage: Plugins
+  plugin-market: Mercado de plugins
+  report-manage: Informes
+  score: Puntuación
+  status: Estado
+  user-manage: Usuarios
+  profile: Perfil de usuario
+  my-reports: Informes
 colors:
   black: Negro
   white: Blanco

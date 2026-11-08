@@ -72,6 +72,9 @@ skinlib:
     button: Upload
     cost: It costs you about :score score.
     award: You'll be awarded :score score(s) by uploading public texture.
+    title: Upload Texture
+    name-rule: Less than 32 characters and must not contain any special one.
+    repeated: The texture is already uploaded by someone else. You can add it to your closet directly.
   show:
     anonymous: You must login to use closets
     likes: People who like this
@@ -260,6 +263,24 @@ general:
     player-name: Player Name
     previews: Texture Previews
     last-modified: Last Modified
+  login: 로그인
+  register: 지금 가입하기
+  logout: 로그아웃
+  my-closet: 나의 옷장
+  oauth-manage: OAuth2 앱
+  check-update: 업데이트 확인
+  dashboard: 대시보드
+  i18n: 다국어
+  nickname: 닉네임
+  player-manage: 플레이어
+  plugin-manage: 플러그인 관리
+  plugin-market: 플러그인 마켓
+  report-manage: 신고관리
+  score: Score
+  status: 상태
+  user-manage: 사용자
+  profile: 사용자 프로파일
+  my-reports: 신고내역
 colors:
   black: Black
   white: White
