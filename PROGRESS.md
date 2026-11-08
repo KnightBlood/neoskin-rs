@@ -392,3 +392,4 @@
 - `src/lib.rs` 增加 `#![recursion_limit = "256"]`，修复新增校验分支后的宏展开上限。
 - 174 条 PHP 路由保持不变。
 - 验证：`cargo check` 通过；`cargo test --lib` 96 passed，doctest 27 ignored。
+- 共享前端产物已同步到 `public/app-next`（site `index-DKdkLoHq.js` / admin `index-CMpios6g.js`）。
