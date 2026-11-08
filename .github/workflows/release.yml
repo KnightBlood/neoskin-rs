@@ -59,6 +59,7 @@ jobs:
           $perlBin = 'C:\Strawberry\perl\bin'
           if (-not (Test-Path $perlBin)) { throw "Strawberry Perl not found at $perlBin" }
           $perlBin | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          "OPENSSL_SRC_PERL=$perlBin\perl.exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           & "$perlBin\perl.exe" -v
 
       - uses: Swatinem/rust-cache@v2
