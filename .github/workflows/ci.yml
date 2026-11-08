@@ -187,7 +187,9 @@ jobs:
           set -euo pipefail
           git clone --depth 1 --branch "$FRONTEND_REF" https://github.com/DreamCraft-Tech/blessing-skin-server-patch.git /tmp/bs-src
           corepack enable
-          (cd /tmp/bs-src && yarn install --frozen-lockfile && yarn build)
+          (cd /tmp/bs-src && yarn install --frozen-lockfile && yarn build
+            && cp resources/assets/src/images/bg.webp resources/assets/src/images/favicon.ico public/app/
+            && cp resources/assets/standalone/*.js public/app/)
           mkdir -p public
           rm -rf public/app
           cp -r /tmp/bs-src/public/app public/app
