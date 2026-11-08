@@ -1,18 +1,21 @@
 {
   "frontendVersion": "0.1.0",
   "contractVersion": 1,
-  "builtAt": "2026-11-08T02:42:56Z",
+  "builtAt": "2026-11-08T02:50:27Z",
   "apps": {
     "site": {
-      "entry": "/app-next/site/assets/index-DKdkLoHq.js",
+      "entry": "/app-next/site/assets/index-97G5gvx2.js",
       "css": [
-        "/app-next/site/assets/index-B7nuskeX.css"
+        "/app-next/site/assets/loading-CS-qlNyt.css",
+        "/app-next/site/assets/button-BEWTNnlh.css",
+        "/app-next/site/assets/popup-BP1PwShS.css",
+        "/app-next/site/assets/index-DZZGDOGW.css"
       ]
     },
     "admin": {
-      "entry": "/app-next/admin/assets/index-CMpios6g.js",
+      "entry": "/app-next/admin/assets/index-DHuSRUon.js",
       "css": [
-        "/app-next/admin/assets/index-eWDg43oi.css"
+        "/app-next/admin/assets/index-9QkOyXsH.css"
       ]
     }
   }

@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-EIAPxkjE.js";var t=e();function n({title:e,children:n}){return(0,t.jsxs)(`section`,{className:`page`,children:[(0,t.jsx)(`h1`,{children:e}),n]})}var r=()=>(0,t.jsx)(n,{title:`404`,children:`页面不存在。`});export{r as NotFoundPage};

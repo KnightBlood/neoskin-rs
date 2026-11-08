@@ -1,0 +1,1 @@
+function e(e,t){let n=e,r=Object.keys(t).sort((e,t)=>t.length-e.length);for(let e of r)n=n.split(`:${e}`).join(String(t[e]));return n}function t(t,n,r,i){let a=t(n,{defaultValue:i??n});return e(String(a),r)}export{t};

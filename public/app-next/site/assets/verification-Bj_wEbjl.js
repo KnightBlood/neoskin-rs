@@ -1,0 +1,1 @@
+function e(e){let t=e.user;return!t||t.verified?!1:!!(e.options.require_verification??e.features.emailVerification)}export{e as t};
