@@ -412,3 +412,4 @@
   `neoskin-rs_<version>_<platform>.zip`，包含 二进制、`resources`、`public/app-next` 与部署文档。
 - 共享前端产物更新为 site `index-pnUYroLe.js` / admin `index-DOqbNUvq.js`。
 - 验证：`cargo test --lib --tests` 全绿。
+- GitHub Release `v6.0.11` 已发布：6 个 `neoskin-rs_6.0.11_*.zip`；Windows vendored OpenSSL 通过 Strawberry Perl 构建。
