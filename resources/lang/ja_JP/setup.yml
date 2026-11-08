@@ -3,21 +3,21 @@ database:
   connection-error: "ターゲット :type データベースに接続できません。設定を確認してください。サーバーが以下の返信を受けました: :msg"
 locked:
   title: すでにインストールされています
-  text: Blessing Skin Serverがインストールされているようです。再インストールするには、"storage"ディレクトリの下にある"install.lock"ファイルを削除してください。
+  text: NeoSkinがインストールされているようです。再インストールするには、"storage"ディレクトリの下にある"install.lock"ファイルを削除してください。
   button: ホームページに戻る
 updates:
   success:
     title: 更新完了
 wizard:
   master:
-    title: インストールウィザード - Blessing Skin Server
+    title: インストールウィザード - NeoSkin
   welcome:
     title: ようこそ
     button: 次へ
-    text: Blessing Skin Server v:version へようこそ!
+    text: NeoSkin v:version へようこそ!
   database:
     title: データベース
-    text: Blessing Skinのデータを格納するためのデータベースです。
+    text: NeoSkinのデータを格納するためのデータベースです。
     type: データベース種別
     host: データベースホスト
     port: データベースポート
@@ -26,7 +26,7 @@ wizard:
     db: データベース名
     db-notice: SQLiteファイルのパスを指定し、SQLiteを使用する場合はその他の空白を埋める必要はありません。
     prefix: データベーステーブルのプレフィックス(オプション)
-    prefix-notice: 複数のBlessing Skin Serverを1つのデータベースにインストールする場合を除き、このオプションを使用する必要はありません。
+    prefix-notice: 複数のNeoSkinを1つのデータベースにインストールする場合を除き、このオプションを使用する必要はありません。
   info:
     title: 必要な情報
     button: インストールを実行
@@ -41,4 +41,4 @@ wizard:
     site-name-notice: これはすべてのページに表示されます。
   finish:
     title: インストール完了
-    text: Blessing Skin Serverがインストールされました。ありがとうございました。
+    text: NeoSkinがインストールされました。ありがとうございました。

@@ -3,21 +3,21 @@ database:
   connection-error: "无法连接至 :type 目标数据库，请检查你的配置。服务器返回的信息：:msg"
 locked:
   title: 已安装过
-  text: Blessing Skin Server 看起来已经安装妥当。如果想重新安装，请删除 storage 目录下的 install.lock 文件。
+  text: NeoSkin 看起来已经安装妥当。如果想重新安装，请删除 storage 目录下的 install.lock 文件。
   button: 返回首页
 updates:
   success:
     title: 升级成功
 wizard:
   master:
-    title: Blessing Skin Server 安装程序
+    title: NeoSkin 安装程序
   welcome:
     title: 欢迎
     button: 下一步
-    text: 欢迎使用 Blessing Skin Server v:version！
+    text: 欢迎使用 NeoSkin v:version！
   database:
     title: 填写数据库信息
-    text: 您提供的数据库将用于存储 Blessing Skin 的数据
+    text: 您提供的数据库将用于存储 NeoSkin 的数据
     type: 数据库类型
     host: 数据库服务器地址
     port: 端口
@@ -26,7 +26,7 @@ wizard:
     db: 数据库名称
     db-notice: 如果您使用 SQLite，那么您应该填写 SQLite 数据库文件的路径，并且无需填写其它信息
     prefix: 数据表前缀（可选）
-    prefix-notice: 通常您不需要填写此项，除非您有向同一数据库安装多个 Blessing Skin 的需要
+    prefix-notice: 通常您不需要填写此项，除非您有向同一数据库安装多个 NeoSkin 的需要
   info:
     title: 填写信息
     button: 开始安装
@@ -41,4 +41,4 @@ wizard:
     site-name-notice: 将会显示在首页以及标题栏
   finish:
     title: 安装成功！
-    text: Blessing Skin Server 安装完成。你是否还沉浸在愉悦的安装过程中？很遗憾，一切皆已完成！ :)
+    text: NeoSkin 安装完成。你是否还沉浸在愉悦的安装过程中？很遗憾，一切皆已完成！ :)

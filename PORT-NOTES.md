@@ -452,3 +452,12 @@
   `sign_gap_time`、`reporter_score_modification`、`reporter_reward_score`。
 - `src/lib.rs` 增加 `#![recursion_limit = "256"]`，避免新增校验分支后 `json!` 展开超限。
 - 无需新增路由，PHP 174 条路由保持不变。
+
+### NeoSkin 品牌默认值（2026-11-08）
+
+- 有意偏离 PHP 默认值：`site_name=NeoSkin`、
+  `site_description=NeoSkin Minecraft Skin Hosting Service`、
+  `announcement=Welcome to NeoSkin {version}!`。
+- 安装向导与更新提示中的产品名改为 NeoSkin。
+- 保留上游归属与兼容标识：`copyright_prefer` 的 7 条文案、页脚链接、
+  `blessing-*` 路由/字段/cookie/模板钩子均不变。

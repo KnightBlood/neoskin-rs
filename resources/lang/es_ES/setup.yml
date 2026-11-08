@@ -3,21 +3,21 @@ database:
   connection-error: "No se puede conectar a la base de datos :type, favor comprobar su configuración. El servidor respondió con: :msg"
 locked:
   title: Ya instalado
-  text: Parece que ya tienes instalado Blessing Skin Server. Para reinstalar, por favor elimine primero las tablas en su base de datos, o use un nuevo prefijo de tabla.
+  text: Parece que ya tienes instalado NeoSkin. Para reinstalar, por favor elimine primero las tablas en su base de datos, o use un nuevo prefijo de tabla.
   button: Volver al inicio
 updates:
   success:
     title: Actualización finalizada
 wizard:
   master:
-    title: Asistente de actualizacones - Blessing Skin Server
+    title: Asistente de actualizacones - NeoSkin
   welcome:
     title: Bienvenido
     button: Siguiente
-    text: Bienvenido a Blessing Skin Server v:version!
+    text: Bienvenido a NeoSkin v:version!
   database:
     title: Base de datos
-    text: La base de datos se utiliza para almacenar datos de Blessing Skin.
+    text: La base de datos se utiliza para almacenar datos de NeoSkin.
     type: Tipo de base de datos
     host: Host de base de datos
     port: Puerto de base de datos
@@ -26,7 +26,7 @@ wizard:
     db: Nombre de base de datos
     db-notice: Debería proporcionar la ruta al archivo SQLite; no hay necesidad de llenar otros espacios en blanco si lo usa.
     prefix: Prefijo de tabla de base de datos (opcional)
-    prefix-notice: No necesita utilizar esta opción a menos que desee instalar múltiples instancias de Blessing Skin Server en una base de datos.
+    prefix-notice: No necesita utilizar esta opción a menos que desee instalar múltiples instancias de NeoSkin en una base de datos.
   info:
     title: Información necesaria
     button: Ejecutar instalación
@@ -41,4 +41,4 @@ wizard:
     site-name-notice: Esto se mostrará en todas las páginas.
   finish:
     title: Instalación completada
-    text: Blessing Skin Server ha sido instalado. ¡Gracias y disfrútalo!
+    text: NeoSkin ha sido instalado. ¡Gracias y disfrútalo!

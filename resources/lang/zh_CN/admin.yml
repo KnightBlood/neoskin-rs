@@ -68,7 +68,7 @@ status:
   info: 信息
   health: 健康
   bs:
-    name: Blessing Skin
+    name: NeoSkin
     version: 版本
     env: 应用环境
     debug: 是否处于调试状态

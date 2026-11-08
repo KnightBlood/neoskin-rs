@@ -10,15 +10,15 @@ use crate::models::option::OptionItem;
 /// `config/options.php` 的默认值（顺序与源文件一致）。
 pub const DEFAULTS: &[(&str, &str)] = &[
     ("site_url", ""),
-    ("site_name", "Blessing Skin"),
+    ("site_name", "NeoSkin"),
     (
         "site_description",
-        "Open-source PHP Minecraft Skin Hosting Service",
+        "NeoSkin Minecraft Skin Hosting Service",
     ),
     ("register_with_player_name", "true"),
     ("require_verification", "false"),
     ("regs_per_ip", "3"),
-    ("announcement", "Welcome to Blessing Skin {version}!"),
+    ("announcement", "Welcome to NeoSkin {version}!"),
     ("home_pic_url", "./app/bg.webp"),
     ("custom_css", ""),
     ("custom_js", ""),

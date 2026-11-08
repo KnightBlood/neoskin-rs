@@ -68,7 +68,7 @@ status:
   info: Information
   health: Santé
   bs:
-    name: Blessing Skin
+    name: NeoSkin
     version: Version
     env: Environnement d'application
     debug: Débogage ou pas ?

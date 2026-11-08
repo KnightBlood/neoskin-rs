@@ -79,7 +79,7 @@ pub struct BsInstall {
 impl TypedCommand for BsInstall {
     async fn run(self) -> Result<(), FrameworkError> {
         if install::is_locked() {
-            line("You have installed Blessing Skin Server. Nothing to do.");
+            line("You have installed NeoSkin. Nothing to do.");
             return Ok(());
         }
 
@@ -128,7 +128,7 @@ impl TypedCommand for BsInstall {
 
 /// `php artisan options:cache`：把 options 表导出成 `storage/options.php`。
 #[derive(Parser, Command, Debug)]
-#[console(name = "options:cache", description = "Cache Blessing Skin options")]
+#[console(name = "options:cache", description = "Cache NeoSkin options")]
 pub struct OptionsCache;
 
 #[async_trait]

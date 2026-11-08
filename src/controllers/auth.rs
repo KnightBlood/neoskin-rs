@@ -441,7 +441,7 @@ fn mail_params(url: &str, site_name: &str) -> Map<String, Value> {
 async fn site_name(locale_code: &str) -> String {
     options::localized(locale_code, "site_name")
         .await
-        .unwrap_or_else(|_| "Blessing Skin".to_string())
+        .unwrap_or_else(|_| "NeoSkin".to_string())
 }
 
 /// 缓存中的「上次发信时间」距现在不足 `interval` 秒时返回剩余秒数。

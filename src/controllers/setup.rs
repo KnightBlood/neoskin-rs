@@ -33,7 +33,7 @@ fn locked_page() -> Response {
         "setup/locked.html",
         json!({
             "locale": "zh-CN",
-            "site_name": "Blessing Skin",
+            "site_name": "NeoSkin",
             "csrf_token": suprnova::get_csrf_token().unwrap_or_default(),
             "langs": [],
             "lang_name": "",
@@ -185,7 +185,7 @@ pub async fn info(request: Request) -> Response {
         json!({
             "email": "",
             "nickname": "",
-            "site_name": options::value("site_name").await.unwrap_or_else(|_| "Blessing Skin".to_string()),
+            "site_name": options::value("site_name").await.unwrap_or_else(|_| "NeoSkin".to_string()),
         }),
     );
     insert(&mut context, "errors", json!([]));

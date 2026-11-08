@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  RUST_VERSION: "1.94.0"
+  CARGO_PROFILE_RELEASE_DEBUG: "0"
+
+jobs:
+  build:
+    name: Build (${{ matrix.asset }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,    asset: linux-x64,     features: "" }
+          - { os: ubuntu-24.04-arm, asset: linux-arm64,   features: "" }
+          - { os: windows-latest,   asset: windows-x64,   features: "vendored-openssl" }
+          - { os: windows-11-arm,   asset: windows-arm64, features: "vendored-openssl" }
+          - { os: macos-15-intel,   asset: macos-x64,     features: "" }
+          - { os: macos-latest,     asset: macos-arm64,   features: "" }
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install Linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev unzip
+
+      - name: Install macOS deps
+        if: runner.os == 'macOS'
+        run: |
+          brew install openssl@3
+          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> "$GITHUB_ENV"
+
+      - name: Install Windows deps
+        if: runner.os == 'Windows'
+        run: choco install nasm -y --no-progress
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: Resolve version
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+            VERSION="dev-${GITHUB_SHA::7}"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ matrix.features }}" ]; then
+            cargo build --release --bin neoskin_rs --features "${{ matrix.features }}"
+          else
+            cargo build --release --bin neoskin_rs
+          fi
+
+      - name: Stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p stage/public
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp target/release/neoskin_rs.exe stage/neoskin_rs.exe
+          else
+            cp target/release/neoskin_rs stage/neoskin_rs
+          fi
+          cp -r resources stage/resources
+          cp -r public/app-next stage/public/app-next
+          cp .env.example README.md DEPLOYMENT.md stage/
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path 'stage/*' `
+            -DestinationPath "dist/neoskin-rs_${env:VERSION}_${{ matrix.asset }}.zip" -Force
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          (cd stage && zip -r "../dist/neoskin-rs_${VERSION}_${{ matrix.asset }}.zip" .)
+          ls -lh dist/*.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rust-${{ matrix.asset }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: rust-*
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: dist/*.zip
+          generate_release_notes: true

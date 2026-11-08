@@ -68,7 +68,7 @@ status:
   info: 정보
   health: 상태
   bs:
-    name: Blessing Skin
+    name: NeoSkin
     version: 버전
     env: 앱플리케이션 환경
     debug: Debugging or Not?
