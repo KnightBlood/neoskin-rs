@@ -31,6 +31,14 @@ fn forbidden() -> Response {
     Ok(HttpResponse::json(json!({ "code": 1, "message": "你无权操作此角色" })).status(403))
 }
 
+/// `/user/player/*` 需要邮箱验证；`/api/players` 不检查（PHP 的 API 路由不挂 `verified`）。
+async fn verified_guard(request: &Request, user: &User) -> Option<HttpResponse> {
+    if request.path().starts_with("/api") {
+        return None;
+    }
+    crate::support::api::require_verified(user, request).await
+}
+
 /// 对应 PHP `Rules\PlayerName` + `min/max`；返回首条错误消息。
 pub(crate) async fn validate_name(name: &str) -> Result<Option<String>, FrameworkError> {
     if name.is_empty() {
@@ -164,6 +172,9 @@ pub async fn list(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let players = Player::filter("uid", user.uid).get().await?;
     let data: Vec<Value> = players.iter().map(player_json).collect();
     Ok(HttpResponse::json(json!(data)))
@@ -181,6 +192,9 @@ pub async fn add(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let body: AddPlayerRequest = request.input().await?;
     let name = body.name.trim().to_string();
     if let Some(message) = validate_name(&name).await? {
@@ -235,6 +249,9 @@ pub async fn delete(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let Some(player) = owned_player(&request, &user).await? else {
         return forbidden();
     };
@@ -274,6 +291,9 @@ pub async fn rename(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let Some(player) = owned_player(&request, &user).await? else {
         return forbidden();
     };
@@ -318,6 +338,9 @@ pub async fn set_textures(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let Some(player) = owned_player(&request, &user).await? else {
         return forbidden();
     };
@@ -389,6 +412,9 @@ pub async fn clear_textures(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = verified_guard(&request, &user).await {
+        return Ok(response);
+    }
     let Some(player) = owned_player(&request, &user).await? else {
         return forbidden();
     };

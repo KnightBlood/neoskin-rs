@@ -28,6 +28,9 @@ pub async fn submit(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = crate::support::api::require_verified(&user, &request).await {
+        return Ok(response);
+    }
     let body: SubmitRequest = request.input().await?;
     let Some(tid) = body.tid.filter(|value| *value > 0) else {
         return Err(validation_error("tid", "tid 不能为空。").into());

@@ -46,6 +46,32 @@ pub async fn require_scopes(request: &Request, required: &[&str]) -> Result<(), 
     Ok(())
 }
 
+/// PHP `verified` 中间件：`require_verification` 打开且用户尚未验证时返回 403。
+///
+/// <p>只用于 `/user/*`、`/texture*`、`/skinlib/*` 等 web 路由；Laravel 的 `/api/*`
+/// 不挂该中间件，因此调用方需按路径判断。</p>
+pub async fn require_verified(user: &User, request: &Request) -> Option<HttpResponse> {
+    if user.verified {
+        return None;
+    }
+    if !crate::support::options::bool_or("require_verification", false)
+        .await
+        .unwrap_or(false)
+    {
+        return None;
+    }
+    Some(
+        HttpResponse::json(json!({
+            "message": crate::support::i18n::translate(
+                &crate::support::locale::resolve(request),
+                "auth.check.verified",
+                None,
+            ),
+        }))
+        .status(403),
+    )
+}
+
 /// `json($message, 0, $data)` / `json($message, 0)`。
 pub fn success(message: impl Into<String>, data: Option<Value>) -> HttpResponse {
     let mut body = json!({ "code": 0, "message": message.into() });

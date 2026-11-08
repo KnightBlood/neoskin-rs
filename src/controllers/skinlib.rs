@@ -100,6 +100,9 @@ async fn ensure_manage(
         Ok(user) => user,
         Err(response) => return Ok(Some(Ok(response))),
     };
+    if let Some(response) = crate::support::api::require_verified(&user, request).await {
+        return Ok(Some(Ok(response)));
+    }
     if user.uid as i32 == texture.uploader || user.is_admin() {
         return Ok(None);
     }
@@ -271,6 +274,9 @@ pub async fn handle_upload(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if let Some(response) = crate::support::api::require_verified(&user, &request).await {
+        return Ok(response);
+    }
     let body: UploadRequest = request.input().await?;
 
     let name = body.name.trim().to_string();

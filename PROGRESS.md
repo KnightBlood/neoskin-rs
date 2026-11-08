@@ -379,3 +379,16 @@
 - 管理端 SPA 通过请求头 `X-Neoskin-Spa: 1` 标识；`POST|PUT /admin/communications*` 与撤回据此返回 JSON，其他请求保持 302（不改变 legacy 行为）。
 
 - 新增 `GET /api/admin/update/info`：返回 `latest/current/error/can_update/package/upload_limits`，管理端更新页直接展示最新版本与可更新状态。
+
+### 2026-11-08（bootstrap 开关 + 邮箱验证门禁）
+
+- `src/controllers/spa.rs` 的 bootstrap options 增加 `allow_downloading_texture`、
+  `require_verification`、`player_name_length_min/max`、`user_initial_score`、`return_score`、
+  `sign_after_zero`、`sign_gap_time`、`reporter_score_modification`、`reporter_reward_score`。
+- 新增 `support/api.rs::require_verified`；`controllers/player.rs` 的 `verified_guard` 仅对
+  `/user/*` 生效（`/api/players` 不门禁），并覆盖角色 6 个处理器。
+- `controllers/skinlib.rs`（`/texture*`、`POST /skinlib`）、`controllers/report.rs`
+  （`POST /skinlib/report`）、`controllers/user_page.rs::oauth` 接入门禁。
+- `src/lib.rs` 增加 `#![recursion_limit = "256"]`，修复新增校验分支后的宏展开上限。
+- 174 条 PHP 路由保持不变。
+- 验证：`cargo check` 通过；`cargo test --lib` 96 passed，doctest 27 ignored。

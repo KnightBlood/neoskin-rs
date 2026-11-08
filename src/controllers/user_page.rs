@@ -380,6 +380,16 @@ pub async fn oauth(request: Request) -> Response {
         Ok(user) => user,
         Err(response) => return Ok(response),
     };
+    if options::bool_or("require_verification", false)
+        .await
+        .unwrap_or(false)
+        && !user.verified
+    {
+        let locale_code = locale::resolve(&request);
+        return Ok(
+            HttpResponse::text(translate(&locale_code, "auth.check.verified", None)).status(403),
+        );
+    }
     let locale_code = locale::resolve(&request);
     let context = page_context(&request, &user, &locale_code).await;
     Ok(view::render("user/oauth.html", context))
